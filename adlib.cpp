@@ -21,15 +21,6 @@ struct MelodicVoice {
 // notes being currently played for each percussion (0xFF if none)
 uint8 notes_per_percussion[NUM_PERCUSSIONS];
 
-uint8 operator_offsets_for_percussion[] = {
-	0x11, // hi-hat operator 		[channel 7, operator 1]
-	0x15, // cymbal operator		[channel 8, operator 2]
-	0x12, // tom tom operator		[channel 8, operator 1]
-	0x14  // snare drum operator	[channel 7, operator 1]
-//  0x10  // bass drum				[channel 6, operator 1]
-//  0x13  // bass drum				[channel 6, operator 2]
-};
-
 
 // (almost) static info about notes played by percussions
 // fields with _2 are used only by the bass drum (2 operators)
@@ -65,7 +56,7 @@ struct PercussionNotes {
 	uint8 field_1D;
 	uint8 field_1E;
 	uint8 field_1F;
-} percussion_notes[82];
+};
 
 struct MelodicProgram {
 	uint8 am_vib_env;	// amplitude modulation, vibrato, envelope, keyboard scaling, modulator frequency
@@ -82,7 +73,7 @@ struct MelodicProgram {
 	uint8 field_B;
 	uint8 field_C;
 	uint8 field_D;
-} melodic_programs[58];
+};
 
 /*
 	bit 7 - Clear:  AM depth is 1 dB
