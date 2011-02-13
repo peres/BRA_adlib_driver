@@ -15,7 +15,7 @@ uint8  midi_event_type, last_midi_event_type;
 uint8  midi_tempo;
 uint8  midi_event_channel;
 uint8  midi_onoff_note;
-uint8  midi_onoff_speed;
+uint8  midi_onoff_velocity;
 
 int32 driver_timestamp;
 uint8 driver_assigned_voice;
@@ -222,8 +222,8 @@ void process_meta_tempo_event() {
 }
 
 #define NOTE_KEY(note)			((note) & 0xFF)
-#define NOTE_SPEED(note)		(((note) >> 8) & 0xFF)
-#define NOTEON_SPEED(note)		((dword_13D18[midi_volume] * NOTE_SPEED(note)) >> 8)
+#define NOTE_VEL(note)			(((note) >> 8) & 0xFF)
+#define NOTEON_VEL(note)		((dword_13D18[midi_volume] * NOTE_VEL(note)) >> 8)
 
 void process_midi_channel_event() {
 	midi_event_channel = midi_event_type & 0xF;
@@ -236,14 +236,14 @@ void process_midi_channel_event() {
 	case 9: // note on
 		note_info = read_midi_word();
 		midi_onoff_note = NOTE_KEY(note_info);
-		midi_onoff_speed = NOTEON_SPEED(midi_onoff_note);
+		midi_onoff_velocity = NOTEON_VEL(midi_onoff_note);
 		ADLIB_turn_on_voice();
 		break;	// return
 		
 	case 8: // note off
 		note_info = read_midi_word();
 		midi_onoff_note = NOTE_KEY(note_info);
-		midi_onoff_speed = NOTE_SPEED(midi_onoff_note);
+		midi_onoff_velocity = NOTE_VEL(midi_onoff_note);
 		ADLIB_turn_off_voice();
 		break;	// return
 	
