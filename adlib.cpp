@@ -412,7 +412,7 @@ void ADLIB_play_melodic_note(uint8 voice) {
 		ADLIB_out(0x40 + offset2, ADLIB_40(scaling_level, total_level));
 	}
 	
-	ADLIB_out(0xB0 + voice, ADLIB_B0(1,octave << 2,melodic_fnumbers[fnumber] >> 8);
+	ADLIB_out(0xB0 + voice, ADLIB_B0(1 << 5,octave << 2,melodic_fnumbers[fnumber] >> 8);
 	ADLIB_out(0xA0 + voice, melodic_fnumbers[fnumber] & 0xFF);
 
 	melodic[voice].program = program;

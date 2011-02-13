@@ -277,7 +277,7 @@ void process_midi_channel_event() {
 					bend_amount = (midi_pitch_bend * (melodic_fnumbers[f] - melodic_fnumbers[f-2])) / PITCH_BEND_THRESH;					
 				}
 				bend_amount += melodic_fnumbers[f];	// add the base frequency
-				ADLIB_out(0xB0 + i, ADLIB_B0(1,melodic[i].octave<<2,bend_amount >> 8));
+				ADLIB_out(0xB0 + i, ADLIB_B0(1 << 5,melodic[i].octave<<2,bend_amount >> 8));
 				ADLIB_out(0xA0 + i, bend_amount & 0xFF);
 				melodic[i].timestamp = driver_timestamp;
 			}
