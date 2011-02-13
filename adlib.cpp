@@ -102,6 +102,22 @@ uint8 driver_percussion_mask;
 
 #define ADLIB_40(scaling,total) ( ((scaling) & 0xC0) | ((total_level) & 0x3F) )
 
+#define INC_MOD(n,max)		((n+1) % max)
+
+
+// the maximum volume value in the hardware
+#define MAXIMUM_LEVEL			63
+
+/* combines note, program and channel levels, then scales it down to fit the six bits available in
+   the hardware. The result is subtracted from MAXIMUM_LEVEL as the hardware's logic is
+   reversed. See http://www.shipbrook.com/jeff/sb.html#40-55.
+ */
+#define TOTAL_LEVEL(vel,prg)	(MAXIMUM_LEVEL - ((ADLIB_log_volume[vel] * ADLIB_log_volume[voices[midi_event_channel].volume] * (prg)) >> 16))
+
+
+
+
+
 
 /* turn off all the voices and restore base octave and (hi) frequency */
 void ADLIB_mute_voices() {
@@ -232,15 +248,6 @@ void ADLIB_setup_percussion(uint8 percussion_number, uint8 note) {
 	}
 }
 
-// the maximum volume value in the hardware
-#define MAXIMUM_LEVEL			63
-
-/* combines note, program and channel levels, then scales it down to fit the six bits available in
-   the hardware. The result is subtracted from MAXIMUM_LEVEL as the hardware's logic is
-   reversed. See http://www.shipbrook.com/jeff/sb.html#40-55.
- */
-#define TOTAL_LEVEL(vel,prg)	(MAXIMUM_LEVEL - ((ADLIB_log_volume[vel] * ADLIB_log_volume[voices[midi_event_channel].volume] * (prg)) >> 16))
-
 
 void ADLIB_play_percussion() {
 	uint8 percussion_number = percussion_notes[midi_onoff_note].percussion;
@@ -301,8 +308,6 @@ void ADLIB_play_percussion() {
 		ADLIB_out(0xBD, driver_percussion_mask);				
 	}
 }
-
-#define INC_MOD(n,max)		((n+1) % max)
 
 void ADLIB_turn_on_melodic() {
 	// ideal: look for a melodic voice playing the same note with the same program
@@ -371,8 +376,8 @@ void ADLIB_program_melodic_voice(uint8 voice, uint8 program) {
 	
 	uint8 offset1 = operator1_offset_for_melodic[voice];
 	uint8 offset2 = operator2_offset_for_melodic[voice];
-	ADLIB_out(0x40 + offset1, 0x3F);
-	ADLIB_out(0x40 + offset2, 0x3F);
+	ADLIB_out(0x40 + offset1, MAXIMUM_LEVEL);
+	ADLIB_out(0x40 + offset2, MAXIMUM_LEVEL);
 
 	ADLIB_out(0xB0 + voice, ADLIB_B0(0, melodic[voice].octave << 2, melodic[voice].fnumber >> 8));
 
