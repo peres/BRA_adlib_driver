@@ -27,8 +27,8 @@ uint8 notes_per_percussion[NUM_PERCUSSIONS];
 struct PercussionNotes {
 	uint8 am_vib_env;	// amplitude modulation, vibrato, envelope, keyboard scaling, modulator frequency
 	uint8 am_vib_env_2;
-	uint8 total_level;
-	uint8 total_level_2;
+	uint8 levels;
+	uint8 levels_2;
 	uint8 attack_decay;
 	uint8 attack_decay_2;
 	uint8 sustain_release;
@@ -61,8 +61,8 @@ struct PercussionNotes {
 struct MelodicProgram {
 	uint8 am_vib_env;	// amplitude modulation, vibrato, envelope, keyboard scaling, modulator frequency
 	uint8 am_vib_env_2;
-	uint8 total_level;
-	uint8 total_level_2;
+	uint8 levels;
+	uint8 levels_2;
 	uint8 attack_decay;
 	uint8 attack_decay_2;
 	uint8 sustain_release;
@@ -205,7 +205,7 @@ void ADLIB_setup_percussion(uint8 percussion_number, uint8 note) {
 		ADLIB_out(0xBD, driver_ADLIB_DB_status);
 		
 		uint8 offset = operator_offsets_for_percussion[percussion_number];		
-		ADLIB_out(0x40 + offset, percussion_notes[note].total_level & 0x3F);
+		ADLIB_out(0x40 + offset, percussion_notes[note].levels & 0x3F);
 		ADLIB_out(0x60 + offset, percussion_notes[note].attack_decay);
 		ADLIB_out(0x80 + offset, percussion_notes[note].sustain_release);		
 	} else {
@@ -215,14 +215,14 @@ void ADLIB_setup_percussion(uint8 percussion_number, uint8 note) {
 		
 		// first operator
 		ADLIB_out(0x30, percussion_notes[note].am_vib_env);
-		ADLIB_out(0x50, percussion_notes[note].total_level);
+		ADLIB_out(0x50, percussion_notes[note].levels);
 		ADLIB_out(0x70, percussion_notes[note].attack_decay);
 		ADLIB_out(0x90, percussion_notes[note].sustain_release);
 		ADLIB_out(0xF0, percussion_notes[note].waveform);
 
 		// second operator
 		ADLIB_out(0x33, percussion_notes[note].am_vib_env_2);
-		ADLIB_out(0x53, percussion_notes[note].total_level_2);
+		ADLIB_out(0x53, percussion_notes[note].levels_2);
 		ADLIB_out(0x73, percussion_notes[note].attack_decay_2);
 		ADLIB_out(0x93, percussion_notes[note].sustain_release_2);
 		ADLIB_out(0xF3, percussion_notes[note].waveform_2);		
@@ -244,9 +244,9 @@ void ADLIB_play_percussion() {
 		
 		uint8 offset = operator_offsets_for_percussion[percussion_number];		
 		
-		uint8 scaling_level = percussion_notes[midi_onoff_note].total_level;
+		uint8 scaling_level = percussion_notes[midi_onoff_note].levels;
 		uint8 total_level = TOTAL_LEVEL(midi_onoff_speed);
-		ADLIB_out(0x40 + offset, ADLIB_40(scaling_level, percussion_notes[midi_onoff_note].total_level));
+		ADLIB_out(0x40 + offset, ADLIB_40(scaling_level, percussion_notes[midi_onoff_note].levels));
 		
 		if (percussion_number == 2) {
 			// tom tom operator		[channel 8, operator 1]
@@ -271,16 +271,16 @@ void ADLIB_play_percussion() {
 	
 		if (percussions.feedback_algo[midi_onoff_note]) {
 			// operator 2 is modulation operation 1	
-			uint8 scaling_level = percussion_notes[midi_onoff_note].total_level_2;
+			uint8 scaling_level = percussion_notes[midi_onoff_note].levels_2;
 			uint8 total_level = TOTAL_LEVEL(midi_onoff_speed);
 			ADLIB_out(0x53, ADLIB_40(scaling_level, total_level));
 		} else {
 			// operators 1 and 2 are independent
-			uint8 scaling_level = percussion_notes[midi_onoff_note].total_level;
+			uint8 scaling_level = percussion_notes[midi_onoff_note].levels;
 			uint8 total_level = TOTAL_LEVEL(midi_onoff_speed);
 			ADLIB_out(0x40 + offset, ADLIB_40(scaling_level, total_level);
 
-			uint8 scaling_level = percussion_notes[midi_onoff_note].total_level_2;
+			uint8 scaling_level = percussion_notes[midi_onoff_note].levels_2;
 			uint8 total_level = TOTAL_LEVEL(midi_onoff_speed);
 			ADLIB_out(0x53, ADLIB_40(scaling_level, total_level));
 		}
@@ -373,13 +373,13 @@ void ADLIB_program_melodic_voice(uint8 voice, uint8 program) {
 	ADLIB_out(0x60 + offset1, melodic_programs[program].attack_decay);
 	ADLIB_out(0x80 + offset1, melodic_programs[program].sustain_release);
 	ADLIB_out(0xE0 + offset1, melodic_programs[program].waveform);
-	ADLIB_out(0x40 + offset1, melodic_programs[program].total_level);
+	ADLIB_out(0x40 + offset1, melodic_programs[program].levels);
 	
 	ADLIB_out(0x20 + offset2, melodic_programs[program].am_vib_env_2);
 	ADLIB_out(0x60 + offset2, melodic_programs[program].attack_decay_2);
 	ADLIB_out(0x80 + offset2, melodic_programs[program].sustain_release_2);
 	ADLIB_out(0xE0 + offset2, melodic_programs[program].waveform_2);
-	ADLIB_out(0x40 + offset2, melodic_programs[program].total_level_2);
+	ADLIB_out(0x40 + offset2, melodic_programs[program].levels_2);
 }
 
 void ADLIB_mute_melodic_voice(uint8 voice) {
@@ -397,17 +397,17 @@ void ADLIB_play_melodic_note(uint8 voice) {
 	
 	if (1 & melodic_programs[program].both_operators) {
 		uint8 offset1 = operator1_offset_for_melodic[voice];
-		uint8 scaling_level = melodic_programs[program].total_level;
-		uint8 total_level = 63 - ((dword_13B17[voices[midi_event_channel].volume] * dword_13B17[midi_onoff_speed] * (63 - (melodic_programs[program].total_level & 0x3F))) >> 16);		
+		uint8 scaling_level = melodic_programs[program].levels;
+		uint8 total_level = 63 - ((dword_13B17[voices[midi_event_channel].volume] * dword_13B17[midi_onoff_speed] * (63 - (melodic_programs[program].levels & 0x3F))) >> 16);		
 		ADLIB_out(0x40 + offset1, ADLIB_40(scaling_level, total_level));
 
 		uint8 offset2 = operator2_offset_for_melodic[voice];
-		scaling_level = melodic_programs[program].total_level_2;
-		total_level = 63 - ((dword_13B17[voices[midi_event_channel].volume] * dword_13B17[midi_onoff_speed] * (63 - (melodic_programs[program].total_level_2 & 0x3F))) >> 16);		
+		scaling_level = melodic_programs[program].levels_2;
+		total_level = 63 - ((dword_13B17[voices[midi_event_channel].volume] * dword_13B17[midi_onoff_speed] * (63 - (melodic_programs[program].levels_2 & 0x3F))) >> 16);		
 		ADLIB_out(0x40 + offset2, ADLIB_40(scaling_level, total_level));
 	} else {
 		uint8 offset2 = operator2_offset_for_melodic[voice];
-		uint8 scaling_level = melodic_programs[program].total_level_2;
+		uint8 scaling_level = melodic_programs[program].levels_2;
 		uint8 total_level = TOTAL_LEVEL(midi_onoff_speed);
 		ADLIB_out(0x40 + offset2, ADLIB_40(scaling_level, total_level));
 	}
