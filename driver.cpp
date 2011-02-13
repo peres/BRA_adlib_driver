@@ -16,6 +16,7 @@ uint8  midi_tempo;
 uint8  midi_event_channel;
 uint8  midi_onoff_note;
 uint8  midi_onoff_velocity;
+int16 midi_pitch_bend;
 
 int32 driver_timestamp;
 uint8 driver_assigned_voice;
@@ -225,12 +226,15 @@ void process_meta_tempo_event() {
 #define NOTE_VEL(note)			(((note) >> 8) & 0xFF)
 #define NOTEON_VEL(note)		((dword_13D18[midi_volume] * NOTE_VEL(note)) >> 8)
 
+#define PITCH_BEND_THRESH		8192
+
 void process_midi_channel_event() {
 	midi_event_channel = midi_event_type & 0xF;
 	uint8 event_type = midi_event_type >> 4;
 	
 	uint16 note_info;
 	uint8 controller_number, controller_value;
+	int16 bend_amount;
 	
 	switch (event_type) {
 	case 9: // note on
@@ -260,6 +264,23 @@ void process_midi_channel_event() {
 		break;	// return		
 
 	case 14:	// pitch bend
+		midi_pitch_bend = read_midi_VLQ();	// this should always read 2 bytes from the stream, so using VLQ might not be correct
+		for (int i = 0; i < NUM_MELODIC_VOICES; ++i) {
+			if (melodic[i].channel == midi_event_channel && melodic[i].in_use) {
+				uint8 f = 12 + melodic[i].note % 12;	// index to fnumber
+				if (midi_pitch_bend > PITCH_BEND_THRESH) {
+					// bend up two semitones
+					bend_amount = (midi_pitch_bend * (melodic_fnumbers[f+2] - melodic_fnumbers[f])) / PITCH_BEND_THRESH;
+				} else {
+					// bend down two semitones
+					bend_amount = (midi_pitch_bend * (melodic_fnumbers[f] - melodic_fnumbers[f-2])) / PITCH_BEND_THRESH;					
+				}
+				bend_amount += melodic_fnumbers[f];	// add the base frequency
+				ADLIB_out(0xB0 + i, ADLIB_B0(1,melodic[i].octave<<2,bend_amount >> 8));
+				ADLIB_out(0xA0 + i, bend_amount & 0xFF);
+				melodic[i].timestamp = driver_timestamp;
+			}
+		}
 		break;	
 	
 	case 11:	// controller
