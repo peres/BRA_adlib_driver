@@ -295,3 +295,49 @@ void process_midi_channel_event() {
 		break;
 	}
 }
+
+uint32 dword_13D18[128];
+uint32 dword_13B17[129];
+
+void midi_init() {
+	ADLIB_out(0x1, 0x80);
+	ADLIB_out(0x1, 0x20);
+	
+	// linear map [0..127] to [0..128] (user volume to driver volume?)
+	const float k = 128.0f / 127.0f;
+	for (int i = 0; i < 128; ++i) {
+		dword_13D18[i] = (uint32)round(k * (float)i);
+	}
+
+	// logarithmic map [0 -> 0, 1..128 -> 1..6] (driver volume to hw volume?)
+	for (int i = 0; i < 129; ++i) {
+		dword_13B17 = (uint32)round(log(256.0f) * (log((float)i+1.0f) / log(128.0f)));
+	}
+	
+	for (int i = 0; i < 8; ++i) {
+		ADLIB_out(0xA0 + i, 0);
+		ADLIB_out(0xB0 + i, 0);
+		ADLIB_out(0xC0 + i, 0);
+	}
+
+	ADLIB_out(0xBD, driver_ADLIB_DB_status);
+	
+	midi_buffer_pos = 4;
+	midi_tempo = 120;
+	midi_division = 192;
+	midi_event_delta = 0;
+	midi_event_type = 0;
+	last_midi_event_type = 0;
+	midi_fade_volume_change_rate = 0;
+	midi_fade_out_flag = false;
+	driver_fade_in_flag = false;
+	driver_fading_out = false;
+	driver_fading_in = false;
+	midi_loop = false;
+	driver_status = kStatusStopped;
+	driver_assigned_voice = 0;
+	driver_timestamp = 0;
+	interrupt_cycles = 0;
+	interrupt_cycle_ratio = 1;
+	midi_volume = 127;
+}
