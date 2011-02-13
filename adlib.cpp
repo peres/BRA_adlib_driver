@@ -232,7 +232,14 @@ void ADLIB_setup_percussion(uint8 percussion_number, uint8 note) {
 	}
 }
 
-#define TOTAL_LEVEL(vel)	(63 - ((ADLIB_log_volume[vel] * 63 * ADLIB_log_volume[voices[midi_event_channel].volume]) >> 16))
+// the maximum volume value in the hardware
+#define MAXIMUM_LEVEL			63
+
+/* combines note, program and channel levels, then scales it down to fit the six bits available in
+   the hardware. The result is subtracted from MAXIMUM_LEVEL as the hardware's logic is
+   reversed. See http://www.shipbrook.com/jeff/sb.html#40-55.
+ */
+#define TOTAL_LEVEL(vel,prg)	(MAXIMUM_LEVEL - ((ADLIB_log_volume[vel] * ADLIB_log_volume[voices[midi_event_channel].volume] * (prg)) >> 16))
 
 
 void ADLIB_play_percussion() {
@@ -245,7 +252,7 @@ void ADLIB_play_percussion() {
 		uint8 offset = operator_offsets_for_percussion[percussion_number];		
 		
 		uint8 scaling_level = percussion_notes[midi_onoff_note].levels;
-		uint8 total_level = TOTAL_LEVEL(midi_onoff_velocity);
+		uint8 total_level = TOTAL_LEVEL(midi_onoff_velocity, MAXIMUM_LEVEL);
 		ADLIB_out(0x40 + offset, ADLIB_40(scaling_level, percussion_notes[midi_onoff_note].levels));
 		
 		if (percussion_number == 2) {
@@ -272,16 +279,16 @@ void ADLIB_play_percussion() {
 		if (percussions.feedback_algo[midi_onoff_note]) {
 			// operator 2 is modulation operation 1	
 			uint8 scaling_level = percussion_notes[midi_onoff_note].levels_2;
-			uint8 total_level = TOTAL_LEVEL(midi_onoff_velocity);
+			uint8 total_level = TOTAL_LEVEL(midi_onoff_velocity, MAXIMUM_LEVEL);
 			ADLIB_out(0x53, ADLIB_40(scaling_level, total_level));
 		} else {
 			// operators 1 and 2 are independent
 			uint8 scaling_level = percussion_notes[midi_onoff_note].levels;
-			uint8 total_level = TOTAL_LEVEL(midi_onoff_velocity);
+			uint8 total_level = TOTAL_LEVEL(midi_onoff_velocity, MAXIMUM_LEVEL);
 			ADLIB_out(0x40 + offset, ADLIB_40(scaling_level, total_level);
 
 			uint8 scaling_level = percussion_notes[midi_onoff_note].levels_2;
-			uint8 total_level = TOTAL_LEVEL(midi_onoff_velocity);
+			uint8 total_level = TOTAL_LEVEL(midi_onoff_velocity, MAXIMUM_LEVEL);
 			ADLIB_out(0x53, ADLIB_40(scaling_level, total_level));
 		}
 		
@@ -398,17 +405,19 @@ void ADLIB_play_melodic_note(uint8 voice) {
 	if (1 & melodic_programs[program].both_operators) {
 		uint8 offset1 = operator1_offset_for_melodic[voice];
 		uint8 scaling_level = melodic_programs[program].levels;
-		uint8 total_level = 63 - ((ADLIB_log_volume[voices[midi_event_channel].volume] * ADLIB_log_volume[midi_onoff_velocity] * (63 - (melodic_programs[program].levels & 0x3F))) >> 16);		
+		uint8 program_level = 63 - (melodic_programs[program].levels & 0x3F);
+		uint8 total_level = TOTAL_LEVEL(midi_onoff_velocity, program_level);		
 		ADLIB_out(0x40 + offset1, ADLIB_40(scaling_level, total_level));
 
 		uint8 offset2 = operator2_offset_for_melodic[voice];
 		scaling_level = melodic_programs[program].levels_2;
-		total_level = 63 - ((ADLIB_log_volume[voices[midi_event_channel].volume] * ADLIB_log_volume[midi_onoff_velocity] * (63 - (melodic_programs[program].levels_2 & 0x3F))) >> 16);		
+		program_level = 63 - (melodic_programs[program].levels_2 & 0x3F);
+		total_level = TOTAL_LEVEL(midi_onoff_velocity, program_level);		
 		ADLIB_out(0x40 + offset2, ADLIB_40(scaling_level, total_level));
 	} else {
 		uint8 offset2 = operator2_offset_for_melodic[voice];
 		uint8 scaling_level = melodic_programs[program].levels_2;
-		uint8 total_level = TOTAL_LEVEL(midi_onoff_velocity);
+		uint8 total_level = TOTAL_LEVEL(midi_onoff_velocity, MAXIMUM_LEVEL);
 		ADLIB_out(0x40 + offset2, ADLIB_40(scaling_level, total_level));
 	}
 	
