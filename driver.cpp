@@ -39,6 +39,9 @@ bool driver_fading_out;
 uint32 fadeout_volume_cur;
 uint32 fadeout_volume_dec;
 
+uint32 driver_lin_volume[128];
+uint32 ADLIB_log_volume[129];
+
 // internal fine volume
 uint16 full_volume;
 
@@ -224,7 +227,7 @@ void process_meta_tempo_event() {
 
 #define NOTE_KEY(note)			((note) & 0xFF)
 #define NOTE_VEL(note)			(((note) >> 8) & 0xFF)
-#define NOTEON_VEL(note)		((dword_13D18[midi_volume] * NOTE_VEL(note)) >> 8)
+#define NOTEON_VEL(note)		((driver_lin_volume[midi_volume] * NOTE_VEL(note)) >> 8)
 
 #define PITCH_BEND_THRESH		8192
 
@@ -318,9 +321,6 @@ void process_midi_channel_event() {
 	}
 }
 
-uint32 dword_13D18[128];
-uint32 dword_13B17[129];
-
 void midi_init() {
 	ADLIB_out(0x1, 0x80);
 	ADLIB_out(0x1, 0x20);
@@ -328,12 +328,12 @@ void midi_init() {
 	// linear map [0..127] to [0..128] (user volume to driver volume?)
 	const float k = 128.0f / 127.0f;
 	for (int i = 0; i < 128; ++i) {
-		dword_13D18[i] = (uint32)round(k * (float)i);
+		driver_lin_volume[i] = (uint32)round(k * (float)i);
 	}
 
 	// logarithmic map [0 -> 0, 1..128 -> 1..256] (driver volume to hw volume?)
 	for (int i = 0; i < 129; ++i) {
-		dword_13B17 = (uint32)round(256.0f * (log((float)i+1.0f) / log(128.0f)));
+		ADLIB_log_volume[i] = (uint32)round(256.0f * (log((float)i+1.0f) / log(128.0f)));
 	}
 	
 	for (int i = 0; i < 8; ++i) {
