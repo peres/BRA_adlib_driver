@@ -331,9 +331,9 @@ void midi_init() {
 		dword_13D18[i] = (uint32)round(k * (float)i);
 	}
 
-	// logarithmic map [0 -> 0, 1..128 -> 1..6] (driver volume to hw volume?)
+	// logarithmic map [0 -> 0, 1..128 -> 1..256] (driver volume to hw volume?)
 	for (int i = 0; i < 129; ++i) {
-		dword_13B17 = (uint32)round(log(256.0f) * (log((float)i+1.0f) / log(128.0f)));
+		dword_13B17 = (uint32)round(256.0f * (log((float)i+1.0f) / log(128.0f)));
 	}
 	
 	for (int i = 0; i < 8; ++i) {
