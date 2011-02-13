@@ -105,8 +105,9 @@ uint8 driver_percussion_mask;
 #define INC_MOD(n,max)		((n+1) % max)
 
 
-// the maximum volume value in the hardware
+// the maximum volume value in the hardware and its bitmask
 #define MAXIMUM_LEVEL			63
+#define LEVEL_MASK				0x3F		//	63
 
 /* combines note, program and channel levels, then scales it down to fit the six bits available in
    the hardware. The result is subtracted from MAXIMUM_LEVEL as the hardware's logic is
@@ -221,7 +222,7 @@ void ADLIB_setup_percussion(uint8 percussion_number, uint8 note) {
 		ADLIB_out(0xBD, driver_percussion_mask);
 		
 		uint8 offset = operator_offsets_for_percussion[percussion_number];		
-		ADLIB_out(0x40 + offset, percussion_notes[note].levels & 0x3F);
+		ADLIB_out(0x40 + offset, percussion_notes[note].levels & LEVEL_MASK);
 		ADLIB_out(0x60 + offset, percussion_notes[note].attack_decay);
 		ADLIB_out(0x80 + offset, percussion_notes[note].sustain_release);		
 	} else {
@@ -410,13 +411,13 @@ void ADLIB_play_melodic_note(uint8 voice) {
 	if (1 & melodic_programs[program].both_operators) {
 		uint8 offset1 = operator1_offset_for_melodic[voice];
 		uint8 scaling_level = melodic_programs[program].levels;
-		uint8 program_level = 63 - (melodic_programs[program].levels & 0x3F);
+		uint8 program_level = MAXIMUM_LEVEL - (melodic_programs[program].levels & LEVEL_MASK);
 		uint8 total_level = TOTAL_LEVEL(midi_onoff_velocity, program_level);		
 		ADLIB_out(0x40 + offset1, ADLIB_40(scaling_level, total_level));
 
 		uint8 offset2 = operator2_offset_for_melodic[voice];
 		scaling_level = melodic_programs[program].levels_2;
-		program_level = 63 - (melodic_programs[program].levels_2 & 0x3F);
+		program_level = MAXIMUM_LEVEL - (melodic_programs[program].levels_2 & LEVEL_MASK);
 		total_level = TOTAL_LEVEL(midi_onoff_velocity, program_level);		
 		ADLIB_out(0x40 + offset2, ADLIB_40(scaling_level, total_level));
 	} else {
