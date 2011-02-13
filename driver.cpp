@@ -176,7 +176,7 @@ void midi_resume() {
 		driver_timestamp = 0;
 		interrupt_cycles = 0;
 		
-		ADLIB_out(0xFFDB, driver_ADLIB_DB_status);
+		ADLIB_out(0xFFDB, driver_percussion_mask);
 		if (fade_in_flag && !driver_fading_in) {
 			// start a fade in
 			full_volume = midi_volume;
@@ -269,11 +269,11 @@ void process_midi_channel_event() {
 		switch (controller_number) {
 		case 1:	// modulation
 			if (controller_value >= 64) {
-				driver_ADLIB_DB_status |= 0x80;
+				driver_percussion_mask |= 0x80;
 			} else {
-				driver_ADLIB_DB_status &= 0x7F;	
+				driver_percussion_mask &= 0x7F;	
 			}
-			ADLIB_out(0xBD, driver_ADLIB_DB_status);
+			ADLIB_out(0xBD, driver_percussion_mask);
 			break;	// return		
 			
 		case 7: // main volume
@@ -320,7 +320,7 @@ void midi_init() {
 		ADLIB_out(0xC0 + i, 0);
 	}
 
-	ADLIB_out(0xBD, driver_ADLIB_DB_status);
+	ADLIB_out(0xBD, driver_percussion_mask);
 	
 	midi_buffer_pos = 4;
 	midi_tempo = 120;

@@ -85,9 +85,9 @@ struct MelodicProgram {
 	bit 1 - Cymbal off
 	bit 0 - Hi Hat off
 */
-#define ADLIB_DEFAULT_BD	0x20
+#define ADLIB_DEFAULT_PERCUSSION_MASK	0x20
 
-uint8 driver_ADLIB_DB_status;
+uint8 driver_percussion_mask;
 
 /*	
  *	bit  7-6: unused		
@@ -111,7 +111,7 @@ void ADLIB_mute_voices() {
 	}
 	
 	// turn off percussions
-	ADLIB_out(0xBD, ADLIB_DEFAULT_BD);
+	ADLIB_out(0xBD, ADLIB_DEFAULT_PERCUSSION_MASK);
 }
 
 
@@ -137,7 +137,7 @@ void ADLIB_init_voices() {
 	
 	driver_fading_in = false;
 	driver_fading_out = false;
-	driver_ADLIB_DB_status = ADLIB_DEFAULT_BD;
+	driver_percussion_mask = ADLIB_DEFAULT_PERCUSSION_MASK;
 }
 
 void ADLIB_turn_off_voice() {
@@ -164,7 +164,7 @@ void ADLIB_turn_off_voice() {
 }
 
 void ADLIB_turn_off_percussion() {
-	driver_ADLIB_DB_status &= ~(1 << percussion_notes[midi_onoff_note].percussion);
+	driver_percussion_mask &= ~(1 << percussion_notes[midi_onoff_note].percussion);
 }
 
 void ADLIB_turn_on_voice() {
@@ -201,8 +201,8 @@ void ADLIB_turn_on_percussion() {
 void ADLIB_setup_percussion(uint8 percussion_number, uint8 note) {
 	if (percussion_number < 4) {
 		// simple percussions (1 operator)
-		driver_ADLIB_DB_status &= ~(1 << percussion_number);
-		ADLIB_out(0xBD, driver_ADLIB_DB_status);
+		driver_percussion_mask &= ~(1 << percussion_number);
+		ADLIB_out(0xBD, driver_percussion_mask);
 		
 		uint8 offset = operator_offsets_for_percussion[percussion_number];		
 		ADLIB_out(0x40 + offset, percussion_notes[note].levels & 0x3F);
@@ -210,8 +210,8 @@ void ADLIB_setup_percussion(uint8 percussion_number, uint8 note) {
 		ADLIB_out(0x80 + offset, percussion_notes[note].sustain_release);		
 	} else {
 		// bass drum (2 operators)
-		driver_ADLIB_DB_status &= ~(0x10);
-		ADLIB_out(0xBD, driver_ADLIB_DB_status);
+		driver_percussion_mask &= ~(0x10);
+		ADLIB_out(0xBD, driver_percussion_mask);
 		
 		// first operator
 		ADLIB_out(0x30, percussion_notes[note].characteristic);
@@ -239,8 +239,8 @@ void ADLIB_play_percussion() {
 	uint8 percussion_number = percussion_notes[midi_onoff_note].percussion;
 	if (percussion_number < 4) {
 		// simple percussion (1 operator)
-		driver_ADLIB_DB_status &= ~(1 << percussion_number);
-		ADLIB_out(0xBD, driver_ADLIB_DB_status);
+		driver_percussion_mask &= ~(1 << percussion_number);
+		ADLIB_out(0xBD, driver_percussion_mask);
 		
 		uint8 offset = operator_offsets_for_percussion[percussion_number];		
 		
@@ -263,11 +263,11 @@ void ADLIB_play_percussion() {
 			ADLIB_out(0xA7, ADLIB_A0(percussion_notes[midi_onoff_note].fnumber & 0xFF));
 		}
 		
-		driver_ADLIB_DB_status |= (1 << percussion_number);
-		ADLIB_out(0xBD, driver_ADLIB_DB_status);		
+		driver_percussion_mask |= (1 << percussion_number);
+		ADLIB_out(0xBD, driver_percussion_mask);		
 	} else {
 		// bass drum (2 operators)
-		driver_ADLIB_DB_status &= ~(0x10);
+		driver_percussion_mask &= ~(0x10);
 	
 		if (percussions.feedback_algo[midi_onoff_note]) {
 			// operator 2 is modulation operation 1	
@@ -290,8 +290,8 @@ void ADLIB_play_percussion() {
 		ADLIB_out(0xB6, ADLIB_B0(0,octave,fnumber));
 		ADLIB_out(0xA6, ADLIB_A0(percussion_notes[midi_onoff_note].fnumber & 0xFF));
 
-		driver_ADLIB_DB_status |= 0x10;
-		ADLIB_out(0xBD, driver_ADLIB_DB_status);				
+		driver_percussion_mask |= 0x10;
+		ADLIB_out(0xBD, driver_percussion_mask);				
 	}
 }
 
