@@ -264,11 +264,12 @@ void process_midi_channel_event() {
 		break;	// return		
 
 	case 14:	// pitch bend
-		midi_pitch_bend = read_midi_VLQ();	// this should always read 2 bytes from the stream, so using VLQ might not be correct
+		// this should always read 2 bytes from the stream, so using VLQ might not be correct
+		midi_pitch_bend = read_midi_VLQ() - PITCH_BEND_THRESH;	
 		for (int i = 0; i < NUM_MELODIC_VOICES; ++i) {
 			if (melodic[i].channel == midi_event_channel && melodic[i].in_use) {
 				uint8 f = 12 + melodic[i].note % 12;	// index to fnumber
-				if (midi_pitch_bend > PITCH_BEND_THRESH) {
+				if (midi_pitch_bend > 0) {
 					// bend up two semitones
 					bend_amount = (midi_pitch_bend * (melodic_fnumbers[f+2] - melodic_fnumbers[f])) / PITCH_BEND_THRESH;
 				} else {
