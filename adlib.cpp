@@ -25,8 +25,8 @@ uint8 notes_per_percussion[NUM_PERCUSSIONS];
 // (almost) static info about notes played by percussions
 // fields with _2 are used only by the bass drum (2 operators)
 struct PercussionNotes {
-	uint8 am_vib_env;	// amplitude modulation, vibrato, envelope, keyboard scaling, modulator frequency
-	uint8 am_vib_env_2;
+	uint8 characteristic;	// amplitude modulation, vibrato, envelope, keyboard scaling, modulator frequency
+	uint8 characteristic_2;
 	uint8 levels;
 	uint8 levels_2;
 	uint8 attack_decay;
@@ -59,8 +59,8 @@ struct PercussionNotes {
 };
 
 struct MelodicProgram {
-	uint8 am_vib_env;	// amplitude modulation, vibrato, envelope, keyboard scaling, modulator frequency
-	uint8 am_vib_env_2;
+	uint8 characteristic;	// amplitude modulation, vibrato, envelope, keyboard scaling, modulator frequency
+	uint8 characteristic_2;
 	uint8 levels;
 	uint8 levels_2;
 	uint8 attack_decay;
@@ -214,14 +214,14 @@ void ADLIB_setup_percussion(uint8 percussion_number, uint8 note) {
 		ADLIB_out(0xBD, driver_ADLIB_DB_status);
 		
 		// first operator
-		ADLIB_out(0x30, percussion_notes[note].am_vib_env);
+		ADLIB_out(0x30, percussion_notes[note].characteristic);
 		ADLIB_out(0x50, percussion_notes[note].levels);
 		ADLIB_out(0x70, percussion_notes[note].attack_decay);
 		ADLIB_out(0x90, percussion_notes[note].sustain_release);
 		ADLIB_out(0xF0, percussion_notes[note].waveform);
 
 		// second operator
-		ADLIB_out(0x33, percussion_notes[note].am_vib_env_2);
+		ADLIB_out(0x33, percussion_notes[note].characteristic_2);
 		ADLIB_out(0x53, percussion_notes[note].levels_2);
 		ADLIB_out(0x73, percussion_notes[note].attack_decay_2);
 		ADLIB_out(0x93, percussion_notes[note].sustain_release_2);
@@ -369,13 +369,13 @@ void ADLIB_program_melodic_voice(uint8 voice, uint8 program) {
 
 	ADLIB_out(0xB0 + voice, ADLIB_B0(0, melodic[voice].octave << 2, melodic[voice].fnumber >> 8));
 
-	ADLIB_out(0x20 + offset1, melodic_programs[program].am_vib_env);
+	ADLIB_out(0x20 + offset1, melodic_programs[program].characteristic);
 	ADLIB_out(0x60 + offset1, melodic_programs[program].attack_decay);
 	ADLIB_out(0x80 + offset1, melodic_programs[program].sustain_release);
 	ADLIB_out(0xE0 + offset1, melodic_programs[program].waveform);
 	ADLIB_out(0x40 + offset1, melodic_programs[program].levels);
 	
-	ADLIB_out(0x20 + offset2, melodic_programs[program].am_vib_env_2);
+	ADLIB_out(0x20 + offset2, melodic_programs[program].characteristic_2);
 	ADLIB_out(0x60 + offset2, melodic_programs[program].attack_decay_2);
 	ADLIB_out(0x80 + offset2, melodic_programs[program].sustain_release_2);
 	ADLIB_out(0xE0 + offset2, melodic_programs[program].waveform_2);
