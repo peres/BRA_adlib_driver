@@ -197,6 +197,7 @@ void ADLIB_turn_on_voice() {
 		} else {
 			ADLIB_turn_on_melodic();		
 		}	
+	}	
 }
 
 void ADLIB_turn_on_percussion() {
