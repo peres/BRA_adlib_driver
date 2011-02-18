@@ -759,7 +759,7 @@ void ADLIB_turn_off_voice() {
 	} else {
 		uint8 voice;	// left uninitialized !
 	
-		if (voices[midi_channel_event].field_2 == 0) {
+		if (voices[midi_event_channel].field_2 == 0) {
 			voice = 0;
 		}
 		
