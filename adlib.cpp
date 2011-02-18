@@ -697,7 +697,7 @@ void midi_init() {
  *	bits 4-2: octave
  *	bits 1-0: higher 2 bits of f-number
  */
-#define ADLIB_B0(key_on,octave,fnumber) ( ((key_on) & 1) | ((octave) & 7) | ((fnumber)) & 3))
+#define ADLIB_B0(key_on,octave,fnumber) ( ((key_on) & 0x10) | ((octave) & 7) | ((fnumber) & 3) )
 
 #define ADLIB_A0(fnumber) 		(fnumber)
 
