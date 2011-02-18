@@ -135,6 +135,38 @@ uint16 full_volume;
 #define FINE_VOL(x)		((x)<<8)
 
 /**********************************
+	prototypes
+*/
+
+// midi driver
+uint8 read_midi_byte();
+uint16 read_midi_word();
+uint32 read_midi_VLQ();
+void midi_fadeout_and_stop();
+void midi_stop();
+void midi_pause();
+void midi_resume();
+void midi_set_tempo();
+void process_midi_meta_event();
+void process_midi_channel_event();
+void process_meta_tempo_event();
+
+// OPL
+void ADLIB_play_melodic_note(uint8 voice);
+void ADLIB_mute_melodic_voice(uint8 voice);
+void ADLIB_program_melodic_voice(uint8 voice, uint8 program);
+void ADLIB_turn_on_melodic();
+void ADLIB_play_percussion();
+void ADLIB_setup_percussion(uint8 percussion_number, uint8 note);
+void ADLIB_turn_on_percussion();
+void ADLIB_turn_on_voice();
+void ADLIB_turn_off_percussion();
+void ADLIB_turn_off_voice();
+void ADLIB_init_voices();
+void ADLIB_mute_voices();
+void ADLIB_out(uint8 command, uint8 value);
+
+/**********************************
 	static data
 */
 
@@ -680,7 +712,6 @@ void midi_init() {
    reversed. See http://www.shipbrook.com/jeff/sb.html#40-55.
  */
 #define TOTAL_LEVEL(vel,prg)	(MAXIMUM_LEVEL - ((ADLIB_log_volume[vel] * ADLIB_log_volume[voices[midi_event_channel].volume] * (prg)) >> 16))
-
 
 /* turn off all the voices and restore base octave and (hi) frequency */
 void ADLIB_mute_voices() {
