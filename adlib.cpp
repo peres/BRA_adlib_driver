@@ -492,7 +492,7 @@ void midi_resume() {
 		interrupt_cycles = 0;
 		
 		ADLIB_out(0xFFDB, driver_percussion_mask);
-		if (fade_in_flag && !driver_fading_in) {
+		if (midi_fade_in_flag && !driver_fading_in) {
 			// start a fade in
 			full_volume = midi_volume;
 			driver_fading_in = true;
@@ -663,7 +663,7 @@ void midi_init() {
 	last_midi_event_type = 0;
 	midi_fade_volume_change_rate = 0;
 	midi_fade_out_flag = false;
-	driver_fade_in_flag = false;
+	midi_fade_in_flag = false;
 	driver_fading_out = false;
 	driver_fading_in = false;
 	midi_loop = false;
