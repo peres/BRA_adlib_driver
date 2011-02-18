@@ -161,6 +161,7 @@ void set_hw_timer(uint16 clock);
 void reset_hw_timer();
 
 // OPL
+void ADLIB_play_note(uint8 voice, uint8 octave, uint8 fnumber);
 void ADLIB_play_melodic_note(uint8 voice);
 void ADLIB_mute_melodic_voice(uint8 voice);
 void ADLIB_program_melodic_voice(uint8 voice, uint8 program);
@@ -592,8 +593,7 @@ void process_midi_channel_event() {
 					bend_amount = (midi_pitch_bend * (melodic_fnumbers[f] - melodic_fnumbers[f-2])) / PITCH_BEND_THRESH;					
 				}
 				bend_amount += melodic_fnumbers[f];	// add the base frequency
-				ADLIB_out(0xB0 + i, ADLIB_B0(1 << 5,melodic[i].octave<<2,bend_amount >> 8));
-				ADLIB_out(0xA0 + i, bend_amount & 0xFF);
+				ADLIB_play_note(i, melodic[i].octave, bend_amount);
 				melodic[i].timestamp = driver_timestamp;
 			}
 		}
@@ -1024,8 +1024,7 @@ void ADLIB_play_melodic_note(uint8 voice) {
 		ADLIB_out(0x40 + offset2, ADLIB_40(scaling_level, total_level));
 	}
 	
-	ADLIB_out(0xB0 + voice, ADLIB_B0(1 << 5,octave << 2,melodic_fnumbers[fnumber] >> 8));
-	ADLIB_out(0xA0 + voice, melodic_fnumbers[fnumber] & 0xFF);
+	ADLIB_play_note(voice, octave, melodic_fnumbers[fnumber]);
 
 	melodic[voice].program = program;
 	melodic[voice].key = midi_onoff_note;
@@ -1034,4 +1033,9 @@ void ADLIB_play_melodic_note(uint8 voice) {
 	melodic[voice].fnumber = fnumber;
 	melodic[voice].octave = octave;
 	melodic[voice].in_use = true;
+}
+
+void ADLIB_play_note(uint8 voice, uint8 octave, uint8 fnumber) {
+	ADLIB_out(0xB0 + voice, ADLIB_B0(1 << 5,octave << 2,fnumber >> 8));
+	ADLIB_out(0xA0 + voice, fnumber & 0xFF);
 }
