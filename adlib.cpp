@@ -583,7 +583,7 @@ void process_midi_channel_event() {
 		midi_pitch_bend = read_midi_VLQ() - PITCH_BEND_THRESH;	
 		for (int i = 0; i < NUM_MELODIC_VOICES; ++i) {
 			if (melodic[i].channel == midi_event_channel && melodic[i].in_use) {
-				uint8 f = 12 + melodic[i].note % 12;	// index to fnumber
+				uint8 f = 12 + melodic[i].key % 12;	// index to fnumber
 				if (midi_pitch_bend > 0) {
 					// bend up two semitones
 					bend_amount = (midi_pitch_bend * (melodic_fnumbers[f+2] - melodic_fnumbers[f])) / PITCH_BEND_THRESH;
@@ -912,7 +912,7 @@ void ADLIB_turn_on_melodic() {
 	for (int i = 0; i < NUM_MELODIC_VOICES; ++i) {
 		if (melodic[i].channel == midi_event_channel && 
 			melodic[i].program == voices[midi_event_channel].program &&
-			melodic[i].note == midi_onoff_note) {
+			melodic[i].key == midi_onoff_note) {
 			ADLIB_mute_melodic_voice(i);
 			ADLIB_play_melodic_note(i);
 			return;
@@ -1028,7 +1028,7 @@ void ADLIB_play_melodic_note(uint8 voice) {
 	ADLIB_out(0xA0 + voice, melodic_fnumbers[fnumber] & 0xFF);
 
 	melodic[voice].program = program;
-	melodic[voice].note = midi_onoff_note;
+	melodic[voice].key = midi_onoff_note;
 	melodic[voice].channel = midi_event_channel;
 	melodic[voice].timestamp = driver_timestamp;
 	melodic[voice].fnumber = fnumber;
