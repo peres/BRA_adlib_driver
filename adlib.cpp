@@ -156,6 +156,7 @@ void process_midi_channel_event();
 void process_meta_tempo_event();
 
 // timers
+
 void set_hw_timer(uint16 clock);
 void reset_hw_timer();
 
@@ -461,7 +462,6 @@ void midi_fadeout_and_stop() {
 void midi_stop() {
 	ADLIB_mute_voices();
 	reset_hw_timer();	// restore the previous timer frequency
-	interrupt_cycle_ratio = 1;
 	driver_status = kStatusStopped;
 }
 
@@ -471,7 +471,6 @@ void midi_pause() {
 	}
 	ADLIB_mute_voices();
 	reset_hw_timer();
-	interrupt_cycle_ratio = 1;
 	driver_status = kStatusPaused;
 }
 
@@ -493,7 +492,6 @@ void midi_resume() {
 		midi_event_type = read_midi_byte();
 		last_midi_event_type = 0;
 		driver_timestamp = 0;
-		interrupt_cycles = 0;
 		
 		ADLIB_out(0xFFDB, driver_percussion_mask);
 		if (midi_fade_in_flag && !driver_fading_in) {
@@ -511,7 +509,6 @@ void midi_resume() {
 
 void midi_set_tempo() {
 	uint16 word_13A3F = (midi_tempo * midi_division) / 60;
-	interrupt_cycle_ratio = (word_13A3F << 4) / 291;
 	set_hw_timer(word_13A3F);
 }
 
@@ -674,8 +671,6 @@ void midi_init() {
 	driver_status = kStatusStopped;
 	driver_assigned_voice = 0;
 	driver_timestamp = 0;
-	interrupt_cycles = 0;
-	interrupt_cycle_ratio = 1;
 	midi_volume = 127;
 }
 
