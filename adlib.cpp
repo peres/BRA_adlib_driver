@@ -155,6 +155,10 @@ void process_midi_meta_event();
 void process_midi_channel_event();
 void process_meta_tempo_event();
 
+// timers
+void set_hw_timer(uint16 clock);
+void reset_hw_timer();
+
 // OPL
 void ADLIB_play_melodic_note(uint8 voice);
 void ADLIB_mute_melodic_voice(uint8 voice);
