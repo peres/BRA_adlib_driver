@@ -890,7 +890,7 @@ void ADLIB_play_percussion() {
 			// operators 1 and 2 are independent
 			uint8 scaling_level = percussion_notes[midi_onoff_note].levels;
 			uint8 total_level = TOTAL_LEVEL(midi_onoff_velocity, MAXIMUM_LEVEL);
-			ADLIB_out(0x40 + offset, ADLIB_40(scaling_level, total_level);
+			ADLIB_out(0x40 + offset, ADLIB_40(scaling_level, total_level));
 
 			uint8 scaling_level = percussion_notes[midi_onoff_note].levels_2;
 			uint8 total_level = TOTAL_LEVEL(midi_onoff_velocity, MAXIMUM_LEVEL);
@@ -1024,7 +1024,7 @@ void ADLIB_play_melodic_note(uint8 voice) {
 		ADLIB_out(0x40 + offset2, ADLIB_40(scaling_level, total_level));
 	}
 	
-	ADLIB_out(0xB0 + voice, ADLIB_B0(1 << 5,octave << 2,melodic_fnumbers[fnumber] >> 8);
+	ADLIB_out(0xB0 + voice, ADLIB_B0(1 << 5,octave << 2,melodic_fnumbers[fnumber] >> 8));
 	ADLIB_out(0xA0 + voice, melodic_fnumbers[fnumber] & 0xFF);
 
 	melodic[voice].program = program;
