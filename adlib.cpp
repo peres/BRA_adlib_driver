@@ -106,6 +106,7 @@ uint8  midi_event_channel;
 uint8  midi_onoff_note;
 uint8  midi_onoff_velocity;
 int16 midi_pitch_bend;
+uint8 midi_fade_volume_change_rate;
 
 int32 driver_timestamp;
 uint8 driver_assigned_voice;
