@@ -862,15 +862,15 @@ void ADLIB_play_percussion() {
 		
 		if (percussion_number == 2) {
 			// tom tom operator		[channel 8, operator 1]
-			octave = percussion_notes[midi_onoff_note].octave << 2;
-			fnumber = percussion_notes[midi_onoff_note].fnumber >> 8;
+			uint8 octave = percussion_notes[midi_onoff_note].octave << 2;
+			uint8 fnumber = percussion_notes[midi_onoff_note].fnumber >> 8;
 			ADLIB_out(0xB8, ADLIB_B0(0,octave,fnumber));
 			ADLIB_out(0xA8, ADLIB_A0(percussion_notes[midi_onoff_note].fnumber & 0xFF));
 		} else
 		if (percussion_number == 3) {
 			// snare drum operator	[channel 7, operator 1]
-			octave = percussion_notes[midi_onoff_note].octave << 2;
-			fnumber = percussion_notes[midi_onoff_note].fnumber >> 8;
+			uint8 octave = percussion_notes[midi_onoff_note].octave << 2;
+			uint8 fnumber = percussion_notes[midi_onoff_note].fnumber >> 8;
 			ADLIB_out(0xB7, ADLIB_B0(0,octave,fnumber));
 			ADLIB_out(0xA7, ADLIB_A0(percussion_notes[midi_onoff_note].fnumber & 0xFF));
 		}
@@ -892,13 +892,13 @@ void ADLIB_play_percussion() {
 			uint8 total_level = TOTAL_LEVEL(midi_onoff_velocity, MAXIMUM_LEVEL);
 			ADLIB_out(0x40 + offset, ADLIB_40(scaling_level, total_level));
 
-			uint8 scaling_level = percussion_notes[midi_onoff_note].levels_2;
-			uint8 total_level = TOTAL_LEVEL(midi_onoff_velocity, MAXIMUM_LEVEL);
+			scaling_level = percussion_notes[midi_onoff_note].levels_2;
+			total_level = TOTAL_LEVEL(midi_onoff_velocity, MAXIMUM_LEVEL);
 			ADLIB_out(0x53, ADLIB_40(scaling_level, total_level));
 		}
 		
-		octave = percussion_notes[midi_onoff_note].octave << 2;
-		fnumber = percussion_notes[midi_onoff_note].fnumber >> 8;
+		uint8 octave = percussion_notes[midi_onoff_note].octave << 2;
+		uint8 fnumber = percussion_notes[midi_onoff_note].fnumber >> 8;
 		ADLIB_out(0xB6, ADLIB_B0(0,octave,fnumber));
 		ADLIB_out(0xA6, ADLIB_A0(percussion_notes[midi_onoff_note].fnumber & 0xFF));
 
