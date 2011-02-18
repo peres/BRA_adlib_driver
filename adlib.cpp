@@ -1,3 +1,10 @@
+typedef unsigned char 	uint8;
+typedef signed char		int8;
+typedef unsigned short	uint16;
+typedef signed short	int16;
+typedef unsigned int 	uint32;
+typedef signed int		int32;
+
 #define NUM_VOICES				15
 #define NUM_MELODIC_VOICES		6		// channels 0-5	(1 voice each)
 #define NUM_PERCUSSIONS			5		// channels 6 (1 voice), 7-8 (2 voices each)
