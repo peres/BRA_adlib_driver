@@ -881,7 +881,7 @@ void ADLIB_play_percussion() {
 		// bass drum (2 operators)
 		driver_percussion_mask &= ~(0x10);
 	
-		if (percussions.feedback_algo[midi_onoff_note]) {
+		if (percussion_notes[midi_onoff_note].feedback_algo) {
 			// operator 2 is modulation operation 1	
 			uint8 scaling_level = percussion_notes[midi_onoff_note].levels_2;
 			uint8 total_level = TOTAL_LEVEL(midi_onoff_velocity, MAXIMUM_LEVEL);
@@ -890,7 +890,7 @@ void ADLIB_play_percussion() {
 			// operators 1 and 2 are independent
 			uint8 scaling_level = percussion_notes[midi_onoff_note].levels;
 			uint8 total_level = TOTAL_LEVEL(midi_onoff_velocity, MAXIMUM_LEVEL);
-			ADLIB_out(0x40 + offset, ADLIB_40(scaling_level, total_level));
+			ADLIB_out(0x43, ADLIB_40(scaling_level, total_level));
 
 			scaling_level = percussion_notes[midi_onoff_note].levels_2;
 			total_level = TOTAL_LEVEL(midi_onoff_velocity, MAXIMUM_LEVEL);
