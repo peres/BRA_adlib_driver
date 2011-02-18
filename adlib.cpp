@@ -455,7 +455,7 @@ void midi_fadeout_and_stop() {
 }
 
 void midi_stop() {
-	ADLIB_mute();
+	ADLIB_mute_voices();
 	reset_hw_timer();	// restore the previous timer frequency
 	interrupt_cycle_ratio = 1;
 	driver_status = kStatusStopped;
@@ -465,7 +465,7 @@ void midi_pause() {
 	if (!driver_installed) {
 		return;
 	}
-	ADLIB_mute();
+	ADLIB_mute_voices();
 	reset_hw_timer();
 	interrupt_cycle_ratio = 1;
 	driver_status = kStatusPaused;
