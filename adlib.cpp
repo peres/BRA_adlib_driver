@@ -891,7 +891,7 @@ void ADLIB_play_percussion() {
 			// operators 1 and 2 are independent
 			uint8 scaling_level = percussion_notes[midi_onoff_note].levels;
 			uint8 total_level = TOTAL_LEVEL(midi_onoff_velocity, MAXIMUM_LEVEL);
-			ADLIB_out(0x43, ADLIB_40(scaling_level, total_level));
+			ADLIB_out(0x50, ADLIB_40(scaling_level, total_level));
 
 			scaling_level = percussion_notes[midi_onoff_note].levels_2;
 			total_level = TOTAL_LEVEL(midi_onoff_velocity, MAXIMUM_LEVEL);
