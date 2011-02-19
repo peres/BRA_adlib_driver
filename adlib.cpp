@@ -880,6 +880,7 @@ void ADLIB_play_percussion() {
 	} else {
 		// bass drum (2 operators)
 		driver_percussion_mask &= ~(0x10);
+		ADLIB_out(0xBD, driver_percussion_mask);
 	
 		if (percussion_notes[midi_onoff_note].feedback_algo) {
 			// operator 2 is modulation operation 1	
