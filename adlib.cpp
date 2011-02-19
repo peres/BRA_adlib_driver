@@ -79,7 +79,7 @@ struct MelodicProgram {
 	uint8 sustain_release_2;
 	uint8 waveform;
 	uint8 waveform_2;
-	uint8 both_operators;
+	uint8 feedback_algo;
 	uint8 field_B;
 	uint8 field_C;
 	uint8 field_D;
@@ -1006,7 +1006,7 @@ void ADLIB_play_melodic_note(uint8 voice) {
 	
 	uint8 program = voices[midi_event_channel].program;
 	
-	if (1 & melodic_programs[program].both_operators) {
+	if (1 & melodic_programs[program].feedback_algo) {
 		uint8 offset1 = operator1_offset_for_melodic[voice];
 		uint8 scaling_level = melodic_programs[program].levels;
 		uint8 program_level = MAXIMUM_LEVEL - (melodic_programs[program].levels & LEVEL_MASK);
