@@ -999,7 +999,7 @@ void ADLIB_mute_melodic_voice(uint8 voice) {
 
 void ADLIB_play_melodic_note(uint8 voice) {
 	uint8 octave = midi_onoff_note / 12;
-	uint8 fnumber = 12 + (midi_onoff_note % 12);
+	uint8 f = 12 + (midi_onoff_note % 12);
 	if (octave > 7) {
 		octave = 7;
 	}
@@ -1025,13 +1025,13 @@ void ADLIB_play_melodic_note(uint8 voice) {
 		ADLIB_out(0x40 + offset2, ADLIB_40(scaling_level, total_level));
 	}
 	
-	ADLIB_play_note(voice, octave, melodic_fnumbers[fnumber]);
+	ADLIB_play_note(voice, octave, melodic_fnumbers[f]);
 
 	melodic[voice].program = program;
 	melodic[voice].key = midi_onoff_note;
 	melodic[voice].channel = midi_event_channel;
 	melodic[voice].timestamp = driver_timestamp;
-	melodic[voice].fnumber = fnumber;
+	melodic[voice].fnumber = melodic_fnumbers[f];
 	melodic[voice].octave = octave;
 	melodic[voice].in_use = true;
 }
