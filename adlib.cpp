@@ -858,7 +858,7 @@ void ADLIB_play_percussion() {
 		
 		uint8 scaling_level = percussion_notes[midi_onoff_note].levels;
 		uint8 total_level = TOTAL_LEVEL(midi_onoff_velocity, MAXIMUM_LEVEL);
-		ADLIB_out(0x40 + offset, ADLIB_40(scaling_level, percussion_notes[midi_onoff_note].levels));
+		ADLIB_out(0x40 + offset, ADLIB_40(scaling_level, total_level));
 		
 		if (percussion_number == 2) {
 			// tom tom operator		[channel 8, operator 1]
