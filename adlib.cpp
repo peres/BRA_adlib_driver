@@ -634,8 +634,8 @@ void process_midi_channel_event() {
 }
 
 void midi_init() {
-	ADLIB_out(0x1, 0x80);
-	ADLIB_out(0x1, 0x20);
+	ADLIB_out(0x1, 0x80);	// ???
+	ADLIB_out(0x1, 0x20);	// enable all waveforms
 	
 	// linear map [0..127] to [0..128] (user volume to driver volume?)
 	const float k = 128.0f / 127.0f;
