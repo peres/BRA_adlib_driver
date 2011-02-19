@@ -23,7 +23,7 @@ struct MelodicVoice {
 	int8 program;		// the midi instrument? (see voice)
 	int8 channel;		// the hardware channel
 	int32 timestamp;
-	int16 fnumber;		// frequency id (see lookup table)
+	uint16 fnumber;		// frequency id (see lookup table)
 	int8 octave;
 	bool in_use;
 } melodic[NUM_MELODIC_VOICES];
@@ -161,7 +161,7 @@ void set_hw_timer(uint16 clock);
 void reset_hw_timer();
 
 // OPL
-void ADLIB_play_note(uint8 voice, uint8 octave, uint8 fnumber);
+void ADLIB_play_note(uint8 voice, uint8 octave, uint16 fnumber);
 void ADLIB_play_melodic_note(uint8 voice);
 void ADLIB_mute_melodic_voice(uint8 voice);
 void ADLIB_program_melodic_voice(uint8 voice, uint8 program);
@@ -1035,7 +1035,7 @@ void ADLIB_play_melodic_note(uint8 voice) {
 	melodic[voice].in_use = true;
 }
 
-void ADLIB_play_note(uint8 voice, uint8 octave, uint8 fnumber) {
+void ADLIB_play_note(uint8 voice, uint8 octave, uint16 fnumber) {
 	ADLIB_out(0xB0 + voice, ADLIB_B0(1 << 5,octave << 2,fnumber >> 8));
 	ADLIB_out(0xA0 + voice, fnumber & 0xFF);
 }
