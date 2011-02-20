@@ -9,8 +9,6 @@ typedef unsigned int 	uint32;
 typedef signed int		int32;
 
 #define NUM_MIDI_CHANNELS		15
-#define NUM_MELODIC_VOICES		6		// channels 0-5	(1 voice each)
-#define NUM_PERCUSSIONS			5		// channels 6 (1 voice), 7-8 (2 voices each)
 
 struct MidiChannel {
 	uint8 program;
@@ -18,10 +16,14 @@ struct MidiChannel {
 	uint8 field_2;
 } midi_channels[NUM_MIDI_CHANNELS];
 
+
+#define NUM_MELODIC_VOICES		6		// adlib FM voices 0-5	(2 operators each)
+#define NUM_PERCUSSIONS			5		// adlib FM voice 6 	(2 operators), and voices 7-8 (1 operator each)
+
 struct MelodicVoice {
 	int8 key;			// the note being played
 	int8 program;		// the midi instrument? (see voice)
-	int8 channel;		// the hardware channel
+	int8 channel;		// the midi channel
 	int32 timestamp;
 	uint16 fnumber;		// frequency id (see lookup table)
 	int8 octave;
@@ -30,7 +32,6 @@ struct MelodicVoice {
 
 // notes being currently played for each percussion (0xFF if none)
 uint8 notes_per_percussion[NUM_PERCUSSIONS];
-
 
 // (almost) static info about notes played by percussions
 // fields with _2 are used only by the bass drum (2 operators)
