@@ -755,7 +755,7 @@ void midi_init() {
 void ADLIB_mute_voices() {
 	// turn off melodic voices
 	for (int i = 0; i < NUM_MELODIC_VOICES; ++i) {
-		ADLIB_out(0xB0 + i, ADLIB_B0(0, melodic[i].octave << 2, melodic[i].fnumber >> 8));
+		ADLIB_mute_melodic_voice(i);
 	}
 	
 	// turn off percussions
@@ -806,7 +806,7 @@ void ADLIB_turn_off_voice() {
 		
 		if (voice) {
 			// mute the channel
-			ADLIB_out(0xB0 + voice, ADLIB_B0(0, melodic[voice].octave << 2, melodic[voice].fnumber >> 8));
+			ADLIB_mute_melodic_voice(voice);
 		}
 	}
 }
@@ -1018,7 +1018,7 @@ void ADLIB_program_melodic_voice(uint8 voice, uint8 program) {
 	ADLIB_out(0x40 + offset1, MAXIMUM_LEVEL);
 	ADLIB_out(0x40 + offset2, MAXIMUM_LEVEL);
 
-	ADLIB_out(0xB0 + voice, ADLIB_B0(0, melodic[voice].octave << 2, melodic[voice].fnumber >> 8));
+	ADLIB_mute_melodic_voice(voice);
 
 	ADLIB_out(0x20 + offset1, melodic_programs[program].characteristic);
 	ADLIB_out(0x60 + offset1, melodic_programs[program].attack_decay);
