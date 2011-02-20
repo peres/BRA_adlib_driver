@@ -34,7 +34,7 @@ uint8 notes_per_percussion[NUM_PERCUSSIONS];
 
 // (almost) static info about notes played by percussions
 // fields with _2 are used only by the bass drum (2 operators)
-struct PercussionNotes {
+struct PercussionNote {
 	uint8 characteristic;	// amplitude modulation, vibrato, envelope, keyboard scaling, modulator frequency
 	uint8 characteristic_2;
 	uint8 levels;
@@ -166,8 +166,8 @@ void ADLIB_play_melodic_note(uint8 voice);
 void ADLIB_mute_melodic_voice(uint8 voice);
 void ADLIB_program_melodic_voice(uint8 voice, uint8 program);
 void ADLIB_turn_on_melodic();
-void ADLIB_play_percussion(PercussionNotes *note, uint8 velocity);
-void ADLIB_setup_percussion(PercussionNotes *note);
+void ADLIB_play_percussion(PercussionNote *note, uint8 velocity);
+void ADLIB_setup_percussion(PercussionNote *note);
 void ADLIB_onoff_percussion(bool onoff);
 void ADLIB_turn_on_voice();
 void ADLIB_turn_off_voice();
@@ -315,7 +315,7 @@ MelodicProgram melodic_programs[128] = {
 
 
 // struct size = 32
-PercussionNotes percussion_notes[47] = {
+PercussionNote percussion_notes[47] = {
 	{  0x0,  0x0,  0xb,  0x0, 0xa8, 0xd6, 0x38, 0x49,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x4,  0x1,   0x97,  0x4,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0 },
 	{ 0xc0, 0xc0, 0xc0,  0x0, 0xf8, 0xf6, 0x3f, 0x8e,  0x2,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x4,  0x1,   0xf7,  0x4,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0 },
 	{ 0xc0, 0xeb, 0x80, 0x40, 0xc9, 0xb5, 0xab, 0xf6,  0x0,  0x0,  0x1,  0x0,  0x0,  0x0,  0x0,  0x0,  0x3,  0x1,   0x6a,  0x6,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0 },
@@ -826,7 +826,7 @@ void ADLIB_onoff_percussion(bool onoff) {
 	if (midi_onoff_note < 35 || midi_onoff_note > 81) {
 		return;
 	}
-	PercussionNotes *note = &percussion_notes[midi_onoff_note - 35];
+	PercussionNote *note = &percussion_notes[midi_onoff_note - 35];
 
 	if (onoff) {
 		if (note->field_11 == 0) {
@@ -843,7 +843,7 @@ void ADLIB_onoff_percussion(bool onoff) {
 	}
 }
 
-void ADLIB_setup_percussion(PercussionNotes *note) {
+void ADLIB_setup_percussion(PercussionNote *note) {
 	if (note->percussion < 4) {
 		// simple percussions (1 operator)
 		driver_percussion_mask &= ~(1 << note->percussion);
@@ -881,7 +881,7 @@ void ADLIB_setup_percussion(PercussionNotes *note) {
 }
 
 
-void ADLIB_play_percussion(PercussionNotes *note, uint8 velocity) {
+void ADLIB_play_percussion(PercussionNote *note, uint8 velocity) {
 	if (note->percussion < 4) {
 		// simple percussion (1 operator)
 		driver_percussion_mask &= ~(1 << note->percussion);
