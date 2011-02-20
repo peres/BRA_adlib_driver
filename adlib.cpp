@@ -166,7 +166,7 @@ void ADLIB_play_melodic_note(uint8 voice);
 void ADLIB_mute_melodic_voice(uint8 voice);
 void ADLIB_program_melodic_voice(uint8 voice, uint8 program);
 void ADLIB_turn_on_melodic();
-void ADLIB_play_percussion(PercussionNotes *note);
+void ADLIB_play_percussion(PercussionNotes *note, uint8 velocity);
 void ADLIB_setup_percussion(PercussionNotes *note);
 void ADLIB_onoff_percussion(bool onoff);
 void ADLIB_turn_on_voice();
@@ -837,7 +837,7 @@ void ADLIB_onoff_percussion(bool onoff) {
 			notes_per_percussion[note->percussion] = midi_onoff_note;
 		}
 		
-		ADLIB_play_percussion(note);	
+		ADLIB_play_percussion(note, midi_onoff_velocity);	
 	} else {
 		driver_percussion_mask &= ~(1 << note->percussion);
 	}
@@ -881,7 +881,7 @@ void ADLIB_setup_percussion(PercussionNotes *note) {
 }
 
 
-void ADLIB_play_percussion(PercussionNotes *note) {
+void ADLIB_play_percussion(PercussionNotes *note, uint8 velocity) {
 	if (note->percussion < 4) {
 		// simple percussion (1 operator)
 		driver_percussion_mask &= ~(1 << note->percussion);
@@ -890,7 +890,7 @@ void ADLIB_play_percussion(PercussionNotes *note) {
 		uint8 offset = operator_offsets_for_percussion[note->percussion];		
 		
 		uint8 scaling_level = note->levels;
-		uint8 total_level = TOTAL_LEVEL(midi_onoff_velocity, MAXIMUM_LEVEL);
+		uint8 total_level = TOTAL_LEVEL(velocity, MAXIMUM_LEVEL);
 		ADLIB_out(0x40 + offset, ADLIB_40(scaling_level, total_level));
 		
 		if (note->percussion == 2) {
@@ -921,18 +921,18 @@ void ADLIB_play_percussion(PercussionNotes *note) {
 			// operators 1 and 2 in additive synthesis
 			uint8 offset = 0x10;
 			uint8 scaling_level = note->levels;
-			uint8 total_level = TOTAL_LEVEL(midi_onoff_velocity, MAXIMUM_LEVEL);
+			uint8 total_level = TOTAL_LEVEL(velocity, MAXIMUM_LEVEL);
 			ADLIB_out(0x40 + offset, ADLIB_40(scaling_level, total_level));
 
 			offset = 0x13;
 			scaling_level = note->levels_2;
-			total_level = TOTAL_LEVEL(midi_onoff_velocity, MAXIMUM_LEVEL);
+			total_level = TOTAL_LEVEL(velocity, MAXIMUM_LEVEL);
 			ADLIB_out(0x40 + offset, ADLIB_40(scaling_level, total_level));
 		} else {
 			// operator 2 is modulating operator 1	
 			uint8 offset = 0x13;
 			uint8 scaling_level = note->levels_2;
-			uint8 total_level = TOTAL_LEVEL(midi_onoff_velocity, MAXIMUM_LEVEL);
+			uint8 total_level = TOTAL_LEVEL(velocity, MAXIMUM_LEVEL);
 			ADLIB_out(0x40 + offset, ADLIB_40(scaling_level, total_level));
 		}
 		
