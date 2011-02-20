@@ -683,7 +683,7 @@ void midi_init() {
 		ADLIB_log_volume[i] = (uint32)round(256.0f * (log((float)i+1.0f) / log(128.0f)));
 	}
 	
-	for (int i = 0; i < 8; ++i) {
+	for (int i = 0; i < 9; ++i) {
 		ADLIB_out(0xA0 + i, 0);
 		ADLIB_out(0xB0 + i, 0);
 		ADLIB_out(0xC0 + i, 0);
