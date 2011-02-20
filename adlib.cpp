@@ -16,7 +16,7 @@ struct MidiChannel {
 	uint8 field_2;
 } midi_channels[NUM_MIDI_CHANNELS];
 
-
+#define NUM_VOICES				9		// the driver only uses rhythm mode, so there are 9 FM voices available
 #define NUM_MELODIC_VOICES		6		// adlib FM voices 0-5	(2 operators each)
 #define NUM_PERCUSSIONS			5		// adlib FM voice 6 	(2 operators), and voices 7-8 (1 operator each)
 
@@ -376,12 +376,11 @@ uint8 operator_offsets_for_percussion[] = {
 //  0x13  // bass drum				[channel 6, operator 2]
 };
 
-
-uint8 operator1_offset_for_melodic[9] = {
+uint8 operator1_offset_for_melodic[NUM_VOICES] = {
 	 0x0,  0x1,  0x2,  0x8,  0x9,  0xa, 0x10, 0x11, 0x12
 };
 
-uint8 operator2_offset_for_melodic[9] = {
+uint8 operator2_offset_for_melodic[NUM_VOICES] = {
 	 0x3,  0x4,  0x5,  0xb,  0xc,  0xd, 0x13, 0x14, 0x15
 };
 
@@ -683,7 +682,7 @@ void midi_init() {
 		ADLIB_log_volume[i] = (uint32)round(256.0f * (log((float)i+1.0f) / log(128.0f)));
 	}
 	
-	for (int i = 0; i < 9; ++i) {
+	for (int i = 0; i < NUM_VOICES; ++i) {
 		ADLIB_out(0xA0 + i, 0);
 		ADLIB_out(0xB0 + i, 0);
 		ADLIB_out(0xC0 + i, 0);
