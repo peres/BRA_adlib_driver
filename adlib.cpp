@@ -828,21 +828,24 @@ void ADLIB_setup_percussion(uint8 percussion_number, uint8 note) {
 		ADLIB_out(0xBD, driver_percussion_mask);
 		
 		// first operator
-		ADLIB_out(0x30, percussion_notes[note].characteristic);
-		ADLIB_out(0x50, percussion_notes[note].levels);
-		ADLIB_out(0x70, percussion_notes[note].attack_decay);
-		ADLIB_out(0x90, percussion_notes[note].sustain_release);
-		ADLIB_out(0xF0, percussion_notes[note].waveform);
+		uint8 offset = 0x10;
+		ADLIB_out(0x20 + offset, percussion_notes[note].characteristic);
+		ADLIB_out(0x40 + offset, percussion_notes[note].levels);
+		ADLIB_out(0x60 + offset, percussion_notes[note].attack_decay);
+		ADLIB_out(0x80 + offset, percussion_notes[note].sustain_release);
+		ADLIB_out(0xE0 + offset, percussion_notes[note].waveform);
 
 		// second operator
-		ADLIB_out(0x33, percussion_notes[note].characteristic_2);
-		ADLIB_out(0x53, percussion_notes[note].levels_2);
-		ADLIB_out(0x73, percussion_notes[note].attack_decay_2);
-		ADLIB_out(0x93, percussion_notes[note].sustain_release_2);
-		ADLIB_out(0xF3, percussion_notes[note].waveform_2);		
+		offset = 0x13;
+		ADLIB_out(0x20 + offset, percussion_notes[note].characteristic_2);
+		ADLIB_out(0x40 + offset, percussion_notes[note].levels_2);
+		ADLIB_out(0x60 + offset, percussion_notes[note].attack_decay_2);
+		ADLIB_out(0x80 + offset, percussion_notes[note].sustain_release_2);
+		ADLIB_out(0xE0 + offset, percussion_notes[note].waveform_2);		
 		
 		// feedback / algorithm
-		ADLIB_out(0xC6, percussion_notes[note].feedback_algo);
+		uint8 voice = 6;
+		ADLIB_out(0xC0 + voice, percussion_notes[note].feedback_algo);
 	}
 }
 
@@ -862,17 +865,19 @@ void ADLIB_play_percussion() {
 		
 		if (percussion_number == 2) {
 			// tom tom operator		[channel 8, operator 1]
+			uint8 voice = 8;
 			uint8 octave = percussion_notes[midi_onoff_note].octave << 2;
 			uint16 fnumber = percussion_notes[midi_onoff_note].fnumber;
-			ADLIB_out(0xB8, ADLIB_B0(0,octave,fnumber >> 8));
-			ADLIB_out(0xA8, ADLIB_A0(fnumber & 0xFF));
+			ADLIB_out(0xB0 + voice, ADLIB_B0(0,octave,fnumber >> 8));
+			ADLIB_out(0xA0 + voice, ADLIB_A0(fnumber & 0xFF));
 		} else
 		if (percussion_number == 3) {
 			// snare drum operator	[channel 7, operator 1]
+			uint8 voice = 7;
 			uint8 octave = percussion_notes[midi_onoff_note].octave << 2;
 			uint16 fnumber = percussion_notes[midi_onoff_note].fnumber;
-			ADLIB_out(0xB7, ADLIB_B0(0,octave,fnumber >> 8));
-			ADLIB_out(0xA7, ADLIB_A0(fnumber & 0xFF));
+			ADLIB_out(0xB0 + voice, ADLIB_B0(0,octave,fnumber >> 8));
+			ADLIB_out(0xA0 + voice, ADLIB_A0(fnumber & 0xFF));
 		}
 		
 		driver_percussion_mask |= (1 << percussion_number);
@@ -884,24 +889,28 @@ void ADLIB_play_percussion() {
 	
 		if (percussion_notes[midi_onoff_note].feedback_algo & 1) {
 			// operators 1 and 2 in additive synthesis
+			uint8 offset = 0x10;
 			uint8 scaling_level = percussion_notes[midi_onoff_note].levels;
 			uint8 total_level = TOTAL_LEVEL(midi_onoff_velocity, MAXIMUM_LEVEL);
-			ADLIB_out(0x50, ADLIB_40(scaling_level, total_level));
+			ADLIB_out(0x40 + offset, ADLIB_40(scaling_level, total_level));
 
+			offset = 0x13;
 			scaling_level = percussion_notes[midi_onoff_note].levels_2;
 			total_level = TOTAL_LEVEL(midi_onoff_velocity, MAXIMUM_LEVEL);
-			ADLIB_out(0x53, ADLIB_40(scaling_level, total_level));
+			ADLIB_out(0x40 + offset, ADLIB_40(scaling_level, total_level));
 		} else {
 			// operator 2 is modulating operator 1	
+			uint8 offset = 0x13;
 			uint8 scaling_level = percussion_notes[midi_onoff_note].levels_2;
 			uint8 total_level = TOTAL_LEVEL(midi_onoff_velocity, MAXIMUM_LEVEL);
-			ADLIB_out(0x53, ADLIB_40(scaling_level, total_level));
+			ADLIB_out(0x40 + offset, ADLIB_40(scaling_level, total_level));
 		}
 		
+		uint8 voice = 6;
 		uint8 octave = percussion_notes[midi_onoff_note].octave << 2;
 		uint16 fnumber = percussion_notes[midi_onoff_note].fnumber;
-		ADLIB_out(0xB6, ADLIB_B0(0,octave,fnumber >> 8));
-		ADLIB_out(0xA6, ADLIB_A0(fnumber & 0xFF));
+		ADLIB_out(0xB0 + voice, ADLIB_B0(0,octave,fnumber >> 8));
+		ADLIB_out(0xA0 + voice, ADLIB_A0(fnumber & 0xFF));
 
 		driver_percussion_mask |= 0x10;
 		ADLIB_out(0xBD, driver_percussion_mask);				
