@@ -896,19 +896,11 @@ void ADLIB_play_percussion(PercussionNote *note, uint8 velocity) {
 		
 		if (note->percussion == 2) {
 			// tom tom operator		[channel 8, operator 1]
-			uint8 voice = 8;
-			uint8 octave = note->octave << 2;
-			uint16 fnumber = note->fnumber;
-			ADLIB_out(0xB0 + voice, ADLIB_B0(0,octave,fnumber >> 8));
-			ADLIB_out(0xA0 + voice, ADLIB_A0(fnumber & 0xFF));
+			ADLIB_play_note(8, note->octave, note->fnumber);
 		} else
 		if (note->percussion == 3) {
 			// snare drum operator	[channel 7, operator 1]
-			uint8 voice = 7;
-			uint8 octave = note->octave << 2;
-			uint16 fnumber = note->fnumber;
-			ADLIB_out(0xB0 + voice, ADLIB_B0(0,octave,fnumber >> 8));
-			ADLIB_out(0xA0 + voice, ADLIB_A0(fnumber & 0xFF));
+			ADLIB_play_note(7, note->octave, note->fnumber);
 		}
 		
 		driver_percussion_mask |= (1 << note->percussion);
@@ -936,12 +928,8 @@ void ADLIB_play_percussion(PercussionNote *note, uint8 velocity) {
 			uint8 total_level = TOTAL_LEVEL(velocity, MAXIMUM_LEVEL);
 			ADLIB_out(0x40 + offset, ADLIB_40(scaling_level, total_level));
 		}
-		
-		uint8 voice = 6;
-		uint8 octave = note->octave << 2;
-		uint16 fnumber = note->fnumber;
-		ADLIB_out(0xB0 + voice, ADLIB_B0(0,octave,fnumber >> 8));
-		ADLIB_out(0xA0 + voice, ADLIB_A0(fnumber & 0xFF));
+
+		ADLIB_play_note(6, note->octave, note->fnumber);		
 
 		driver_percussion_mask |= 0x10;
 		ADLIB_out(0xBD, driver_percussion_mask);				
@@ -1077,6 +1065,11 @@ void ADLIB_play_melodic_note(uint8 voice) {
 }
 
 void ADLIB_play_note(uint8 voice, uint8 octave, uint16 fnumber) {
-	ADLIB_out(0xB0 + voice, ADLIB_B0(1 << 5,octave << 2,fnumber >> 8));
+	/* Percussions are always fed keyOn = 0 even to set the note, as they are activated using the
+	   BD register instead. I wonder if they can just be fed the same value as melodic voice and
+	   be done with it. */
+	uint8 keyOn = (voice < NUM_MELODIC_VOICES) ? 0x20 : 0;
+
+	ADLIB_out(0xB0 + voice, ADLIB_B0(keyOn, octave << 2, fnumber >> 8));
 	ADLIB_out(0xA0 + voice, fnumber & 0xFF);
 }
