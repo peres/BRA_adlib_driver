@@ -8,15 +8,15 @@ typedef signed short	int16;
 typedef unsigned int 	uint32;
 typedef signed int		int32;
 
-#define NUM_VOICES				15
+#define NUM_MIDI_CHANNELS		15
 #define NUM_MELODIC_VOICES		6		// channels 0-5	(1 voice each)
 #define NUM_PERCUSSIONS			5		// channels 6 (1 voice), 7-8 (2 voices each)
 
-struct Voice {
-	uint8 program;		// why program again?
+struct MidiChannel {
+	uint8 program;
 	uint8 volume;
 	uint8 field_2;
-} voices[NUM_VOICES];
+} midi_channels[NUM_MIDI_CHANNELS];
 
 struct MelodicVoice {
 	int8 key;			// the note being played
@@ -602,7 +602,7 @@ void process_midi_channel_event() {
 		break;	// return
 	
 	case 12:	// program change
-		voices[midi_event_channel].program = read_midi_byte();
+		midi_channels[midi_event_channel].program = read_midi_byte();
 		break;	// return
 		
 	case 13:	// channel aftertouch
@@ -648,11 +648,11 @@ void process_midi_channel_event() {
 			break;	// return		
 			
 		case 7: // main volume
-			voices[midi_event_channel].volume = controller_value;
+			midi_channels[midi_event_channel].volume = controller_value;
 			break;	// return		
 		
 		case 4: // foot controller
-			voices[midi_event_channel].field_2 = (controller_value >= 64);
+			midi_channels[midi_event_channel].field_2 = (controller_value >= 64);
 			break;	// return					
 			
 		case 123: // all notes off
@@ -748,7 +748,7 @@ void midi_init() {
    the hardware. The result is subtracted from MAXIMUM_LEVEL as the hardware's logic is
    reversed. See http://www.shipbrook.com/jeff/sb.html#40-55.
  */
-#define TOTAL_LEVEL(vel,prg)	(MAXIMUM_LEVEL - ((ADLIB_log_volume[vel] * ADLIB_log_volume[voices[midi_event_channel].volume] * (prg)) >> 16))
+#define TOTAL_LEVEL(vel,prg)	(MAXIMUM_LEVEL - ((ADLIB_log_volume[vel] * ADLIB_log_volume[midi_channels[midi_event_channel].volume] * (prg)) >> 16))
 
 /* turn off all the voices and restore base octave and (hi) frequency */
 void ADLIB_mute_voices() {
@@ -763,10 +763,10 @@ void ADLIB_mute_voices() {
 
 
 void ADLIB_init_voices() {
-	for (int i = 0; i < NUM_VOICES; ++i) {
-		voices[i].program = 0;
-		voices[i].volume = 127;
-		voices[i].field_2 = 0;
+	for (int i = 0; i < NUM_MIDI_CHANNELS; ++i) {
+		midi_channels[i].program = 0;
+		midi_channels[i].volume = 127;
+		midi_channels[i].field_2 = 0;
 	}
 	
 	for (int i = 0; i < NUM_MELODIC_VOICES; ++i) {
@@ -793,7 +793,7 @@ void ADLIB_turn_off_voice() {
 	} else {
 		uint8 voice;	// left uninitialized !
 	
-		if (voices[midi_event_channel].field_2 == 0) {
+		if (midi_channels[midi_event_channel].field_2 == 0) {
 			voice = 0;
 		}
 		
@@ -951,7 +951,7 @@ void ADLIB_turn_on_melodic() {
 	// ideal: look for a melodic voice playing the same note with the same program
 	for (int i = 0; i < NUM_MELODIC_VOICES; ++i) {
 		if (melodic[i].channel == midi_event_channel && 
-			melodic[i].program == voices[midi_event_channel].program &&
+			melodic[i].program == midi_channels[midi_event_channel].program &&
 			melodic[i].key == midi_onoff_note) {
 			ADLIB_mute_melodic_voice(i);
 			ADLIB_play_melodic_note(i);
@@ -968,7 +968,7 @@ void ADLIB_turn_on_melodic() {
 			continue;
 		}
 		
-		if (voices[midi_event_channel].program == melodic[driver_assigned_voice].program) {
+		if (midi_channels[midi_event_channel].program == melodic[driver_assigned_voice].program) {
 			ADLIB_play_melodic_note(driver_assigned_voice);
 			return;
 		}
@@ -979,7 +979,7 @@ void ADLIB_turn_on_melodic() {
 		driver_assigned_voice = INC_MOD(driver_assigned_voice, NUM_MELODIC_VOICES);
 	
 		if (!melodic[driver_assigned_voice].in_use) {	
-			ADLIB_program_melodic_voice(driver_assigned_voice, voices[midi_event_channel].program);
+			ADLIB_program_melodic_voice(driver_assigned_voice, midi_channels[midi_event_channel].program);
 			ADLIB_play_melodic_note(driver_assigned_voice);
 			return;		
 		}
@@ -990,7 +990,7 @@ void ADLIB_turn_on_melodic() {
 	do {
 		driver_assigned_voice = INC_MOD(driver_assigned_voice, NUM_MELODIC_VOICES);
 
-		if (voices[midi_event_channel].program == melodic[driver_assigned_voice].program) {
+		if (midi_channels[midi_event_channel].program == melodic[driver_assigned_voice].program) {
 			ADLIB_mute_melodic_voice(driver_assigned_voice);
 			ADLIB_play_melodic_note(driver_assigned_voice);
 			return;
@@ -1005,7 +1005,7 @@ void ADLIB_turn_on_melodic() {
 			driver_assigned_voice = i;
 		}
 	}
-	ADLIB_program_melodic_voice(driver_assigned_voice, voices[midi_event_channel].program);
+	ADLIB_program_melodic_voice(driver_assigned_voice, midi_channels[midi_event_channel].program);
 	ADLIB_play_melodic_note(driver_assigned_voice);
 }
 
@@ -1043,7 +1043,7 @@ void ADLIB_play_melodic_note(uint8 voice) {
 		octave = 7;
 	}
 	
-	uint8 program = voices[midi_event_channel].program;
+	uint8 program = midi_channels[midi_event_channel].program;
 	
 	if (1 & melodic_programs[program].feedback_algo) {
 		uint8 offset1 = operator1_offset_for_melodic[voice];
