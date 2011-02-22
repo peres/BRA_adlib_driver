@@ -1004,6 +1004,9 @@ void ADLIB_program_melodic_voice(uint8 voice, uint8 program) {
 	ADLIB_out(0x80 + offset2, melodic_programs[program].sustain_release_2);
 	ADLIB_out(0xE0 + offset2, melodic_programs[program].waveform_2);
 	ADLIB_out(0x40 + offset2, melodic_programs[program].levels_2);
+
+	// feedback / algorithm
+	ADLIB_out(0xC0 + voice, melodic_programs[program].feedback_algo);
 }
 
 void ADLIB_mute_melodic_voice(uint8 voice) {
