@@ -13,7 +13,7 @@ typedef signed int		int32;
 struct MidiChannel {
 	uint8 program;
 	uint8 volume;
-	uint8 field_2;
+	uint8 pedal;
 } midi_channels[NUM_MIDI_CHANNELS];
 
 #define NUM_VOICES				9		// the driver only uses rhythm mode, so there are 9 FM voices available
@@ -652,7 +652,7 @@ void process_midi_channel_event() {
 			break;	// return		
 		
 		case 4: // foot controller
-			midi_channels[midi_event_channel].field_2 = (controller_value >= 64);
+			midi_channels[midi_event_channel].pedal = (controller_value >= 64);
 			break;	// return					
 			
 		case 123: // all notes off
@@ -773,7 +773,7 @@ void ADLIB_init_voices() {
 	for (int i = 0; i < NUM_MIDI_CHANNELS; ++i) {
 		midi_channels[i].program = 0;
 		midi_channels[i].volume = 127;
-		midi_channels[i].field_2 = 0;
+		midi_channels[i].pedal = 0;
 	}
 	
 	for (int i = 0; i < NUM_MELODIC_VOICES; ++i) {
@@ -800,8 +800,8 @@ void ADLIB_turn_off_voice() {
 	} else {
 		uint8 voice;	// left uninitialized !
 	
-		if (midi_channels[midi_event_channel].field_2 == 0) {
-			voice = 0;
+		if (midi_channels[midi_event_channel].pedal == 0) {
+			voice = 0xFF;	// used below as a flag
 		}
 		
 		for (int i = 0; i < NUM_MELODIC_VOICES; ++i) {
@@ -810,7 +810,7 @@ void ADLIB_turn_off_voice() {
 			}
 		}
 		
-		if (voice) {
+		if (voice != 0xFF) {
 			// mute the channel
 			ADLIB_mute_melodic_voice(voice);
 		}
