@@ -53,7 +53,7 @@ struct PercussionNote {
 	uint8 field_E;
 	uint8 field_F;
 	uint8 percussion;
-	uint8 field_11;
+	uint8 valid;
 	uint16 fnumber;
 	uint8 octave;
 	uint8 field_15;
@@ -836,7 +836,7 @@ void ADLIB_onoff_percussion(bool onoff) {
 	PercussionNote *note = &percussion_notes[midi_onoff_note - 35];
 
 	if (onoff) {
-		if (note->field_11 == 0) {
+		if (note->valid == 0) {
 			return;
 		}
 		if (midi_onoff_note != notes_per_percussion[note->percussion]) {
