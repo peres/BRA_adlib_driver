@@ -818,6 +818,20 @@ void ADLIB_onoff_percussion(bool onoff) {
 	}
 }
 
+void ADLIB_program_operator(uint8 operator_offset, OplOperator *data) {
+	ADLIB_out(0x20 + operator_offset, data->characteristic);
+	ADLIB_out(0x60 + operator_offset, data->attack_decay);
+	ADLIB_out(0x80 + operator_offset, data->sustain_release);
+	ADLIB_out(0x40 + operator_offset, data->levels);
+	ADLIB_out(0xE0 + operator_offset, data->waveform);
+}
+
+void ADLIB_program_operator_s(uint8 operator_offset, OplOperator *data) {
+	ADLIB_out(0x40 + operator_offset, data->levels & LEVEL_MASK);
+	ADLIB_out(0x60 + operator_offset, data->attack_decay);
+	ADLIB_out(0x80 + operator_offset, data->sustain_release);		
+}
+
 void ADLIB_setup_percussion(PercussionNote *note) {
 	if (note->percussion < 4) {
 		// simple percussions (1 operator)
@@ -825,30 +839,15 @@ void ADLIB_setup_percussion(PercussionNote *note) {
 		ADLIB_out(0xBD, driver_percussion_mask);
 		
 		uint8 offset = operator_offsets_for_percussion[note->percussion];		
-		ADLIB_out(0x40 + offset, note->op[0].levels & LEVEL_MASK);
-		ADLIB_out(0x60 + offset, note->op[0].attack_decay);
-		ADLIB_out(0x80 + offset, note->op[0].sustain_release);		
+		ADLIB_program_operator_s(offset, &note->op[0]);
 	} else {
 		// bass drum (2 operators)
 		driver_percussion_mask &= ~(0x10);
 		ADLIB_out(0xBD, driver_percussion_mask);
 		
-		// first operator
-		uint8 offset = 0x10;
-		ADLIB_out(0x20 + offset, note->op[0].characteristic);
-		ADLIB_out(0x40 + offset, note->op[0].levels);
-		ADLIB_out(0x60 + offset, note->op[0].attack_decay);
-		ADLIB_out(0x80 + offset, note->op[0].sustain_release);
-		ADLIB_out(0xE0 + offset, note->op[0].waveform);
-
-		// second operator
-		offset = 0x13;
-		ADLIB_out(0x20 + offset, note->op[1].characteristic);
-		ADLIB_out(0x40 + offset, note->op[1].levels);
-		ADLIB_out(0x60 + offset, note->op[1].attack_decay);
-		ADLIB_out(0x80 + offset, note->op[1].sustain_release);
-		ADLIB_out(0xE0 + offset, note->op[1].waveform);		
-		
+		ADLIB_program_operator(0x10, &note->op[0]);
+		ADLIB_program_operator(0x13, &note->op[1]);
+				
 		// feedback / algorithm
 		uint8 voice = 6;
 		ADLIB_out(0xC0 + voice, note->feedback_algo);
@@ -983,17 +982,8 @@ void ADLIB_program_melodic_voice(uint8 voice, uint8 program) {
 
 	ADLIB_mute_melodic_voice(voice);
 
-	ADLIB_out(0x20 + offset1, prg->op[0].characteristic);
-	ADLIB_out(0x60 + offset1, prg->op[0].attack_decay);
-	ADLIB_out(0x80 + offset1, prg->op[0].sustain_release);
-	ADLIB_out(0xE0 + offset1, prg->op[0].waveform);
-	ADLIB_out(0x40 + offset1, prg->op[0].levels);
-	
-	ADLIB_out(0x20 + offset2, prg->op[1].characteristic);
-	ADLIB_out(0x60 + offset2, prg->op[1].attack_decay);
-	ADLIB_out(0x80 + offset2, prg->op[1].sustain_release);
-	ADLIB_out(0xE0 + offset2, prg->op[1].waveform);
-	ADLIB_out(0x40 + offset2, prg->op[1].levels);
+	ADLIB_program_operator(offset1, &prg->op[0]);
+	ADLIB_program_operator(offset2, &prg->op[1]);
 
 	// feedback / algorithm
 	ADLIB_out(0xC0 + voice, prg->feedback_algo);
