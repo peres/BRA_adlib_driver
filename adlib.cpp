@@ -832,6 +832,13 @@ void ADLIB_program_operator_s(uint8 operator_offset, OplOperator *data) {
 	ADLIB_out(0x80 + operator_offset, data->sustain_release);		
 }
 
+void ADLIB_set_operator_level(uint8 operator_offset, OplOperator *data, uint8 velocity, uint8 midi_channel, bool full_volume) {
+	uint8 scaling_level = data->levels;
+	uint8 program_level = MAXIMUM_LEVEL - (full_volume ? 0 : (data->levels & LEVEL_MASK));
+	uint8 total_level = calc_level(velocity, program_level, midi_channel);
+	ADLIB_out(0x40 + operator_offset, ADLIB_40(scaling_level, total_level));
+}
+
 void ADLIB_setup_percussion(PercussionNote *note) {
 	if (note->percussion < 4) {
 		// simple percussions (1 operator)
@@ -861,12 +868,8 @@ void ADLIB_play_percussion(PercussionNote *note, uint8 velocity) {
 		driver_percussion_mask &= ~(1 << note->percussion);
 		ADLIB_out(0xBD, driver_percussion_mask);
 		
-		uint8 offset = operator_offsets_for_percussion[note->percussion];		
-		
-		uint8 scaling_level = note->op[0].levels;
-		uint8 total_level = calc_level(velocity, MAXIMUM_LEVEL, midi_event_channel);
-		ADLIB_out(0x40 + offset, ADLIB_40(scaling_level, total_level));
-		
+		ADLIB_set_operator_level(operator_offsets_for_percussion[note->percussion], &note->op[0], velocity, midi_event_channel, true);
+				
 		if (note->percussion == 2) {
 			// tom tom operator		[channel 8, operator 1]
 			ADLIB_play_note(8, note->octave, note->fnumber);
@@ -885,21 +888,11 @@ void ADLIB_play_percussion(PercussionNote *note, uint8 velocity) {
 	
 		if (note->feedback_algo & 1) {
 			// operators 1 and 2 in additive synthesis
-			uint8 offset = 0x10;
-			uint8 scaling_level = note->op[0].levels;
-			uint8 total_level = calc_level(velocity, MAXIMUM_LEVEL, midi_event_channel);
-			ADLIB_out(0x40 + offset, ADLIB_40(scaling_level, total_level));
-
-			offset = 0x13;
-			scaling_level = note->op[1].levels;
-			total_level = calc_level(velocity, MAXIMUM_LEVEL, midi_event_channel);
-			ADLIB_out(0x40 + offset, ADLIB_40(scaling_level, total_level));
+			ADLIB_set_operator_level(0x10, &note->op[0], velocity, midi_event_channel, true);
+			ADLIB_set_operator_level(0x13, &note->op[1], velocity, midi_event_channel, true);
 		} else {
 			// operator 2 is modulating operator 1	
-			uint8 offset = 0x13;
-			uint8 scaling_level = note->op[1].levels;
-			uint8 total_level = calc_level(velocity, MAXIMUM_LEVEL, midi_event_channel);
-			ADLIB_out(0x40 + offset, ADLIB_40(scaling_level, total_level));
+			ADLIB_set_operator_level(0x13, &note->op[1], velocity, midi_event_channel, true);
 		}
 
 		ADLIB_play_note(6, note->octave, note->fnumber);		
@@ -1004,22 +997,10 @@ void ADLIB_play_melodic_note(uint8 voice) {
 	MelodicProgram *prg = &melodic_programs[program];
 	
 	if (1 & melodic_programs[program].feedback_algo) {
-		uint8 offset1 = operator1_offset_for_melodic[voice];
-		uint8 scaling_level = prg->op[0].levels;
-		uint8 program_level = MAXIMUM_LEVEL - (prg->op[0].levels & LEVEL_MASK);
-		uint8 total_level = calc_level(midi_onoff_velocity, program_level, midi_event_channel);		
-		ADLIB_out(0x40 + offset1, ADLIB_40(scaling_level, total_level));
-
-		uint8 offset2 = operator2_offset_for_melodic[voice];
-		scaling_level = prg->op[1].levels;
-		program_level = MAXIMUM_LEVEL - (prg->op[1].levels & LEVEL_MASK);
-		total_level = calc_level(midi_onoff_velocity, program_level, midi_event_channel);		
-		ADLIB_out(0x40 + offset2, ADLIB_40(scaling_level, total_level));
+		ADLIB_set_operator_level(operator1_offset_for_melodic[voice], &prg->op[0], midi_onoff_velocity, midi_event_channel, false);
+		ADLIB_set_operator_level(operator2_offset_for_melodic[voice], &prg->op[1], midi_onoff_velocity, midi_event_channel, false);
 	} else {
-		uint8 offset2 = operator2_offset_for_melodic[voice];
-		uint8 scaling_level = prg->op[1].levels;
-		uint8 total_level = calc_level(midi_onoff_velocity, MAXIMUM_LEVEL, midi_event_channel);		
-		ADLIB_out(0x40 + offset2, ADLIB_40(scaling_level, total_level));
+		ADLIB_set_operator_level(operator2_offset_for_melodic[voice], &prg->op[1], midi_onoff_velocity, midi_event_channel, true);
 	}
 	
 	ADLIB_play_note(voice, octave, melodic_fnumbers[f]);
