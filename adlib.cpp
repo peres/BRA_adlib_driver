@@ -16,7 +16,6 @@ struct MidiChannel {
 	uint8 pedal;
 } midi_channels[NUM_MIDI_CHANNELS];
 
-#define NUM_VOICES				9		// the driver only uses rhythm mode, so there are 9 FM voices available
 #define NUM_MELODIC_VOICES		6		// adlib FM voices 0-5	(2 operators each)
 #define NUM_PERCUSSIONS			5		// adlib FM voice 6 	(2 operators), and voices 7-8 (1 operator each)
 
@@ -337,34 +336,6 @@ PercussionNote percussion_notes[47] = {
 };
 
 
-uint8 operator_offsets_for_percussion[] = {
-	0x11, // hi-hat operator 		[channel 7, operator 1]
-	0x15, // cymbal operator		[channel 8, operator 2]
-	0x12, // tom tom operator		[channel 8, operator 1]
-	0x14  // snare drum operator	[channel 7, operator 1]
-//  0x10  // bass drum				[channel 6, operator 1]
-//  0x13  // bass drum				[channel 6, operator 2]
-};
-
-uint8 operator1_offset_for_melodic[NUM_VOICES] = {
-	 0x0,  0x1,  0x2,  0x8,  0x9,  0xa, 0x10, 0x11, 0x12
-};
-
-uint8 operator2_offset_for_melodic[NUM_VOICES] = {
-	 0x3,  0x4,  0x5,  0xb,  0xc,  0xd, 0x13, 0x14, 0x15
-};
-
-uint16 melodic_fnumbers[36] = {
-	 0x55,   0x5a,   0x60,   0x66,   0x6c,   0x72,   0x79,   0x80,   0x88,   
-	 0x90,   0x99,   0xa1,   0xab,   0xb5,   0xc0,   0xcc,   0xd8,   0xe5,   
-	 0xf2,  0x101,  0x110,  0x120,  0x132,  0x143,  0x156,  0x16b,  0x181,  
-	0x198,  0x1b0,  0x1ca,  0x1e5,  0x202,  0x220,  0x241,  0x263,  0x286
-};
-
-
-
-
-
 /**********************************
 	msc-midi driver
 */
@@ -652,6 +623,33 @@ void midi_init() {
 /**********************************
 	low-level OPL manipulation
 */
+
+#define NUM_VOICES				9		// the driver only uses rhythm mode, so there are 9 FM voices available
+
+uint8 operator_offsets_for_percussion[] = {
+	0x11, // hi-hat operator 		[channel 7, operator 1]
+	0x15, // cymbal operator		[channel 8, operator 2]
+	0x12, // tom tom operator		[channel 8, operator 1]
+	0x14  // snare drum operator	[channel 7, operator 1]
+//  0x10  // bass drum				[channel 6, operator 1]
+//  0x13  // bass drum				[channel 6, operator 2]
+};
+
+uint8 operator1_offset_for_melodic[NUM_VOICES] = {
+	 0x0,  0x1,  0x2,  0x8,  0x9,  0xa, 0x10, 0x11, 0x12
+};
+
+uint8 operator2_offset_for_melodic[NUM_VOICES] = {
+	 0x3,  0x4,  0x5,  0xb,  0xc,  0xd, 0x13, 0x14, 0x15
+};
+
+uint16 melodic_fnumbers[36] = {
+	 0x55,   0x5a,   0x60,   0x66,   0x6c,   0x72,   0x79,   0x80,   0x88,   
+	 0x90,   0x99,   0xa1,   0xab,   0xb5,   0xc0,   0xcc,   0xd8,   0xe5,   
+	 0xf2,  0x101,  0x110,  0x120,  0x132,  0x143,  0x156,  0x16b,  0x181,  
+	0x198,  0x1b0,  0x1ca,  0x1e5,  0x202,  0x220,  0x241,  0x263,  0x286
+};
+
 
 /*
 	bit 7 - Clear:  AM depth is 1 dB
