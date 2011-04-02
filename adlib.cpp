@@ -470,7 +470,6 @@ void midi_resume() {
 		last_midi_event_type = 0;
 		driver_timestamp = 0;
 		
-		ADLIB_out(0xBD, driver_percussion_mask);
 		if (midi_fade_in_flag && !driver_fading_in) {
 			// start a fade in
 			full_volume = midi_volume;
@@ -728,6 +727,7 @@ void ADLIB_init_voices() {
 	driver_fading_in = false;
 	driver_fading_out = false;
 	driver_percussion_mask = ADLIB_DEFAULT_PERCUSSION_MASK;
+	ADLIB_out(0xBD, driver_percussion_mask);
 }
 
 void ADLIB_turn_off_voice() {
