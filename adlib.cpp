@@ -37,7 +37,6 @@ uint8  midi_onoff_velocity;
 int16 midi_pitch_bend;
 uint8 midi_fade_volume_change_rate;
 
-int32 driver_timestamp;
 uint8 driver_assigned_voice;
 
 // set by the client
@@ -90,6 +89,7 @@ void reset_hw_timer();
 
 // OPL
 void ADLIB_init();
+void ADLIB_tick();
 void ADLIB_init_voices();
 void ADLIB_mute_voices();
 void ADLIB_turn_on_voice();
@@ -138,7 +138,7 @@ void midi_driver() {
 				}			
 			}
 			
-			driver_timestamp++;
+			ADLIB_tick();
 			
 			if (midi_event_delta != 0) {
 				midi_event_delta--;
@@ -231,7 +231,6 @@ void midi_resume() {
 		midi_event_delta = read_midi_word();
 		midi_event_type = read_midi_byte();
 		last_midi_event_type = 0;
-		driver_timestamp = 0;
 		
 		if (midi_fade_in_flag && !driver_fading_in) {
 			// start a fade in
@@ -373,7 +372,6 @@ void midi_init() {
 	midi_loop = false;
 	driver_status = kStatusStopped;
 	driver_assigned_voice = 0;
-	driver_timestamp = 0;
 	midi_volume = 127;
 }
 
@@ -652,6 +650,8 @@ uint16 melodic_fnumbers[36] = {
 
 uint8 driver_percussion_mask;
 
+int32 driver_timestamp;
+
 /*	
  *	bit  7-6: unused		
  *	bit   5 : key on (0 mutes voice)
@@ -731,6 +731,7 @@ void ADLIB_init_voices() {
 	// clear out current percussion notes
 	memset(notes_per_percussion, 5, 0xFF);
 	
+	driver_timestamp = 0;
 	driver_percussion_mask = ADLIB_DEFAULT_PERCUSSION_MASK;
 	ADLIB_out(0xBD, driver_percussion_mask);
 }
@@ -1033,7 +1034,12 @@ void ADLIB_init() {
 		ADLIB_out(0xC0 + i, 0);
 	}
 
+	driver_timestamp = 0;
 	ADLIB_out(0xBD, driver_percussion_mask);
+}
+
+void ADLIB_tick() {
+	driver_timestamp++;
 }
 
 void ADLIB_modulation(int value) {
