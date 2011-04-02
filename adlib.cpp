@@ -146,6 +146,7 @@ void ADLIB_turn_off_voice();
 void ADLIB_init_voices();
 void ADLIB_mute_voices();
 void ADLIB_pitch_bend(int amount, uint8 midi_channel);
+void ADLIB_modulation(int value);
 void ADLIB_out(uint8 command, uint8 value);
 
 /**********************************
@@ -563,12 +564,7 @@ void process_midi_channel_event() {
 		
 		switch (controller_number) {
 		case 1:	// modulation
-			if (controller_value >= 64) {
-				driver_percussion_mask |= 0x80;
-			} else {
-				driver_percussion_mask &= 0x7F;	
-			}
-			ADLIB_out(0xBD, driver_percussion_mask);
+			ADLIB_modulation(controller_value);
 			break;	// return		
 			
 		case 7: // main volume
@@ -1032,5 +1028,14 @@ void ADLIB_init() {
 		ADLIB_out(0xC0 + i, 0);
 	}
 
+	ADLIB_out(0xBD, driver_percussion_mask);
+}
+
+void ADLIB_modulation(int value) {
+	if (value >= 64) {
+		driver_percussion_mask |= 0x80;
+	} else {
+		driver_percussion_mask &= 0x7F;	
+	}
 	ADLIB_out(0xBD, driver_percussion_mask);
 }
