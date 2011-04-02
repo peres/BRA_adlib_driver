@@ -217,6 +217,9 @@ void midi_resume() {
 	}
 	if (driver_status != kStatusPaused) {
 		ADLIB_init_voices();
+		driver_fading_in = false;
+		driver_fading_out = false;
+
 		driver_assigned_voice = 0;
 		midi_buffer_pos = 4;	// skip signature
 		midi_tempo = read_midi_byte();
@@ -728,8 +731,6 @@ void ADLIB_init_voices() {
 	// clear out current percussion notes
 	memset(notes_per_percussion, 5, 0xFF);
 	
-	driver_fading_in = false;
-	driver_fading_out = false;
 	driver_percussion_mask = ADLIB_DEFAULT_PERCUSSION_MASK;
 	ADLIB_out(0xBD, driver_percussion_mask);
 }
