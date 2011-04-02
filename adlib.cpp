@@ -16,48 +16,6 @@ struct MidiChannel {
 	uint8 pedal;
 } midi_channels[NUM_MIDI_CHANNELS];
 
-#define NUM_MELODIC_VOICES		6		// adlib FM voices 0-5	(2 operators each)
-#define NUM_PERCUSSIONS			5		// adlib FM voice 6 	(2 operators), and voices 7-8 (1 operator each)
-
-struct MelodicVoice {
-	int8 key;			// the note being played
-	int8 program;		// the midi instrument? (see voice)
-	int8 channel;		// the midi channel
-	int32 timestamp;
-	uint16 fnumber;		// frequency id (see lookup table)
-	int8 octave;
-	bool in_use;
-} melodic[NUM_MELODIC_VOICES];
-
-// notes being currently played for each percussion (0xFF if none)
-uint8 notes_per_percussion[NUM_PERCUSSIONS];
-
-struct OplOperator {
-	uint8 characteristic;	// amplitude modulation, vibrato, envelope, keyboard scaling, modulator frequency
-	uint8 levels;
-	uint8 attack_decay;
-	uint8 sustain_release;
-	uint8 waveform;
-};
-
-// (almost) static info about notes played by percussions
-// fields with _2 are used only by the bass drum (2 operators)
-struct PercussionNote {
-	OplOperator	op[2];
-	uint8 feedback_algo;	// only used by the bass drum
-	uint8 percussion;
-	uint8 valid;
-	uint16 fnumber;
-	uint8 octave;
-};
-
-struct MelodicProgram {
-	OplOperator	op[2];
-	uint8 feedback_algo;
-};
-
-uint8 driver_percussion_mask;
-
 enum DriverStatus {
 	kStatusStopped,
 	kStatusPlaying,
@@ -101,7 +59,6 @@ uint32 fadeout_volume_cur;
 uint32 fadeout_volume_dec;
 
 uint32 driver_lin_volume[128];
-uint32 ADLIB_log_volume[129];
 
 // internal fine volume
 uint16 full_volume;
@@ -133,25 +90,40 @@ void reset_hw_timer();
 
 // OPL
 void ADLIB_init();
-void ADLIB_play_note(uint8 voice, uint8 octave, uint16 fnumber);
-void ADLIB_play_melodic_note(uint8 voice);
-void ADLIB_mute_melodic_voice(uint8 voice);
-void ADLIB_program_melodic_voice(uint8 voice, uint8 program);
-void ADLIB_turn_on_melodic();
-void ADLIB_play_percussion(PercussionNote *note, uint8 velocity);
-void ADLIB_setup_percussion(PercussionNote *note);
-void ADLIB_onoff_percussion(bool onoff);
-void ADLIB_turn_on_voice();
-void ADLIB_turn_off_voice();
 void ADLIB_init_voices();
 void ADLIB_mute_voices();
+void ADLIB_turn_on_voice();
+void ADLIB_turn_off_voice();
 void ADLIB_pitch_bend(int amount, uint8 midi_channel);
 void ADLIB_modulation(int value);
-void ADLIB_out(uint8 command, uint8 value);
 
 /**********************************
 	static data
 */
+
+struct OplOperator {
+	uint8 characteristic;	// amplitude modulation, vibrato, envelope, keyboard scaling, modulator frequency
+	uint8 levels;
+	uint8 attack_decay;
+	uint8 sustain_release;
+	uint8 waveform;
+};
+
+// (almost) static info about notes played by percussions
+// fields with _2 are used only by the bass drum (2 operators)
+struct PercussionNote {
+	OplOperator	op[2];
+	uint8 feedback_algo;	// only used by the bass drum
+	uint8 percussion;
+	uint8 valid;
+	uint16 fnumber;
+	uint8 octave;
+};
+
+struct MelodicProgram {
+	OplOperator	op[2];
+	uint8 feedback_algo;
+};
 
 
 MelodicProgram melodic_programs[128] = {
@@ -621,6 +593,23 @@ void midi_init() {
 
 #define NUM_VOICES				9		// the driver only uses rhythm mode, so there are 9 FM voices available
 
+#define NUM_MELODIC_VOICES		6		// adlib FM voices 0-5	(2 operators each)
+#define NUM_PERCUSSIONS			5		// adlib FM voice 6 	(2 operators), and voices 7-8 (1 operator each)
+
+struct MelodicVoice {
+	int8 key;			// the note being played
+	int8 program;		// the midi instrument? (see voice)
+	int8 channel;		// the midi channel
+	int32 timestamp;
+	uint16 fnumber;		// frequency id (see lookup table)
+	int8 octave;
+	bool in_use;
+} melodic[NUM_MELODIC_VOICES];
+
+// notes being currently played for each percussion (0xFF if none)
+uint8 notes_per_percussion[NUM_PERCUSSIONS];
+
+
 uint8 operator_offsets_for_percussion[] = {
 	0x11, // hi-hat operator 		[channel 7, operator 1]
 	0x15, // cymbal operator		[channel 8, operator 2]
@@ -658,6 +647,8 @@ uint16 melodic_fnumbers[36] = {
 */
 #define ADLIB_DEFAULT_PERCUSSION_MASK	0x20
 
+uint8 driver_percussion_mask;
+
 /*	
  *	bit  7-6: unused		
  *	bit   5 : key on (0 mutes voice)
@@ -679,6 +670,7 @@ uint16 melodic_fnumbers[36] = {
 
 #define PITCH_BEND_THRESH		8192
 
+uint32 ADLIB_log_volume[129];
 
 uint8 calc_level(uint8 velocity, uint8 program_level, uint8 midi_channel) {
 /* combines note, program and channel levels, then scales it down to fit the six bits available in
@@ -691,6 +683,18 @@ uint8 calc_level(uint8 velocity, uint8 program_level, uint8 midi_channel) {
 
 	return MAXIMUM_LEVEL - ((note_level * channel_level * program_level) >> 16);
 }
+
+
+void ADLIB_play_note(uint8 voice, uint8 octave, uint16 fnumber);
+void ADLIB_play_melodic_note(uint8 voice);
+void ADLIB_mute_melodic_voice(uint8 voice);
+void ADLIB_program_melodic_voice(uint8 voice, uint8 program);
+void ADLIB_turn_on_melodic();
+void ADLIB_play_percussion(PercussionNote *note, uint8 velocity);
+void ADLIB_setup_percussion(PercussionNote *note);
+void ADLIB_onoff_percussion(bool onoff);
+void ADLIB_out(uint8 command, uint8 value);
+
 
 /* turn off all the voices and restore base octave and (hi) frequency */
 void ADLIB_mute_voices() {
