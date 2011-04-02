@@ -133,6 +133,7 @@ void set_hw_timer(uint16 clock);
 void reset_hw_timer();
 
 // OPL
+void ADLIB_init();
 void ADLIB_play_note(uint8 voice, uint8 octave, uint16 fnumber);
 void ADLIB_play_melodic_note(uint8 voice);
 void ADLIB_mute_melodic_voice(uint8 voice);
@@ -620,8 +621,6 @@ void process_midi_channel_event() {
 }
 
 void midi_init() {
-	ADLIB_out(0x1, 0x80);	// ???
-	ADLIB_out(0x1, 0x20);	// enable all waveforms
 	
 	// linear map [0..127] to [0..128] (user volume to driver volume?)
 	const float k = 128.0f / 127.0f;
@@ -629,18 +628,7 @@ void midi_init() {
 		driver_lin_volume[i] = (uint32)round(k * (float)i);
 	}
 
-	// logarithmic map [0 -> 0, 1..128 -> 1..256] (driver volume to hw volume?)
-	for (int i = 0; i < 129; ++i) {
-		ADLIB_log_volume[i] = (uint32)round(256.0f * (log((float)i+1.0f) / log(128.0f)));
-	}
-	
-	for (int i = 0; i < NUM_VOICES; ++i) {
-		ADLIB_out(0xA0 + i, 0);
-		ADLIB_out(0xB0 + i, 0);
-		ADLIB_out(0xC0 + i, 0);
-	}
-
-	ADLIB_out(0xBD, driver_percussion_mask);
+	ADLIB_init();
 	
 	midi_buffer_pos = 4;
 	midi_tempo = 120;
@@ -1029,4 +1017,22 @@ void ADLIB_pitch_bend(int amount, uint8 midi_channel) {
 			melodic[i].timestamp = driver_timestamp;
 		}
 	}
+}
+
+void ADLIB_init() {
+	ADLIB_out(0x1, 0x80);	// ???
+	ADLIB_out(0x1, 0x20);	// enable all waveforms
+
+	// logarithmic map [0 -> 0, 1..128 -> 1..256] (driver volume to hw volume?)
+	for (int i = 0; i < 129; ++i) {
+		ADLIB_log_volume[i] = (uint32)round(256.0f * (log((float)i+1.0f) / log(128.0f)));
+	}
+	
+	for (int i = 0; i < NUM_VOICES; ++i) {
+		ADLIB_out(0xA0 + i, 0);
+		ADLIB_out(0xB0 + i, 0);
+		ADLIB_out(0xC0 + i, 0);
+	}
+
+	ADLIB_out(0xBD, driver_percussion_mask);
 }
