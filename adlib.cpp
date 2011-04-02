@@ -145,6 +145,7 @@ void ADLIB_turn_on_voice();
 void ADLIB_turn_off_voice();
 void ADLIB_init_voices();
 void ADLIB_mute_voices();
+void ADLIB_pitch_bend(int amount, uint8 midi_channel);
 void ADLIB_out(uint8 command, uint8 value);
 
 /**********************************
@@ -544,15 +545,12 @@ void process_meta_tempo_event() {
 #define NOTE_VEL(note)			(((note) >> 8) & 0xFF)
 #define NOTEON_VEL(note)		((driver_lin_volume[midi_volume] * NOTE_VEL(note)) >> 8)
 
-#define PITCH_BEND_THRESH		8192
-
 void process_midi_channel_event() {
 	midi_event_channel = midi_event_type & 0xF;
 	uint8 event_type = midi_event_type >> 4;
 	
 	uint16 note_info;
 	uint8 controller_number, controller_value;
-	int16 bend_amount;
 	
 	switch (event_type) {
 	case 9: // note on
@@ -583,22 +581,8 @@ void process_midi_channel_event() {
 
 	case 14:	// pitch bend
 		// this should always read 2 bytes from the stream, so using VLQ might not be correct
-		midi_pitch_bend = read_midi_VLQ() - PITCH_BEND_THRESH;	
-		for (int i = 0; i < NUM_MELODIC_VOICES; ++i) {
-			if (melodic[i].channel == midi_event_channel && melodic[i].in_use) {
-				uint8 f = 12 + melodic[i].key % 12;	// index to fnumber
-				if (midi_pitch_bend > 0) {
-					// bend up two semitones
-					bend_amount = (midi_pitch_bend * (melodic_fnumbers[f+2] - melodic_fnumbers[f])) / PITCH_BEND_THRESH;
-				} else {
-					// bend down two semitones
-					bend_amount = (midi_pitch_bend * (melodic_fnumbers[f] - melodic_fnumbers[f-2])) / PITCH_BEND_THRESH;					
-				}
-				bend_amount += melodic_fnumbers[f];	// add the base frequency
-				ADLIB_play_note(i, melodic[i].octave, bend_amount);
-				melodic[i].timestamp = driver_timestamp;
-			}
-		}
+		midi_pitch_bend = read_midi_VLQ();	
+		ADLIB_pitch_bend(midi_pitch_bend, midi_event_channel);
 		break;	
 	
 	case 11:	// controller
@@ -711,6 +695,8 @@ void midi_init() {
 // the maximum volume value in the hardware and its bitmask
 #define MAXIMUM_LEVEL			63
 #define LEVEL_MASK				0x3F		//	63
+
+#define PITCH_BEND_THRESH		8192
 
 
 uint8 calc_level(uint8 velocity, uint8 program_level, uint8 midi_channel) {
@@ -1022,4 +1008,25 @@ void ADLIB_play_note(uint8 voice, uint8 octave, uint16 fnumber) {
 
 	ADLIB_out(0xB0 + voice, ADLIB_B0(keyOn, octave << 2, fnumber >> 8));
 	ADLIB_out(0xA0 + voice, fnumber & 0xFF);
+}
+
+void ADLIB_pitch_bend(int amount, uint8 midi_channel) {
+	amount -= PITCH_BEND_THRESH;
+	int16 bend_amount;
+
+	for (int i = 0; i < NUM_MELODIC_VOICES; ++i) {
+		if (melodic[i].channel == midi_channel && melodic[i].in_use) {
+			uint8 f = 12 + melodic[i].key % 12;	// index to fnumber
+			if (amount > 0) {
+				// bend up two semitones
+				bend_amount = (amount * (melodic_fnumbers[f+2] - melodic_fnumbers[f])) / PITCH_BEND_THRESH;
+			} else {
+				// bend down two semitones
+				bend_amount = (amount * (melodic_fnumbers[f] - melodic_fnumbers[f-2])) / PITCH_BEND_THRESH;					
+			}
+			bend_amount += melodic_fnumbers[f];	// add the base frequency
+			ADLIB_play_note(i, melodic[i].octave, bend_amount);
+			melodic[i].timestamp = driver_timestamp;
+		}
+	}
 }
